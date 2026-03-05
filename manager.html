@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>COCOLUSH - Manager Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f0; color: #222; }
+    .topbar {
+      background: #1565c0; color: white; padding: 12px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .topbar h2 { font-size: 18px; }
+    .topbar button {
+      background: rgba(255,255,255,0.2); color: white;
+      border: 1px solid rgba(255,255,255,0.4); padding: 6px 14px;
+      border-radius: 6px; cursor: pointer; font-size: 13px;
+    }
+    .topbar button:hover { background: rgba(255,255,255,0.35); }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+    .date-bar {
+      background: white; border-radius: 10px; padding: 12px 16px;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); flex-wrap: wrap;
+    }
+    .date-bar label { font-weight: 600; font-size: 14px; }
+    .date-bar select { padding: 7px 12px; border-radius: 6px; border: 1.5px solid #ddd; font-size: 14px; }
+
+    .card {
+      background: white; border-radius: 12px; padding: 18px 20px;
+      margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .card h3 { font-size: 15px; color: #1565c0; margin-bottom: 14px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+
+    .section-header {
+      background: #e3f2fd; border-radius: 8px; padding: 8px 14px;
+      font-weight: bold; color: #0d47a1; margin: 10px 0; font-size: 14px;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #f5f5f5; padding: 8px 10px; text-align: left; font-size: 12px; color: #555; }
+    td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+    tr:hover td { background: #fafafa; }
+    .tfoot td { font-weight: bold; background: #f0f4f0; }
+
+    .form-row { margin-bottom: 12px; }
+    .form-row label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+    .form-row input, .form-row select, .form-row textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #ddd;
+      border-radius: 8px; font-size: 14px; outline: none;
+    }
+    .form-row input:focus, .form-row select:focus { border-color: #1565c0; }
+
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-right: 8px; }
+    .btn-blue { background: #1565c0; color: white; }
+    .btn-blue:hover { background: #0d47a1; }
+    .btn-green { background: #2e7d32; color: white; }
+    .btn-green:hover { background: #1b5e20; }
+    .btn-red { background: #c62828; color: white; }
+    .btn-red:hover { background: #b71c1c; }
+    .btn-orange { background: #e65100; color: white; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .otp-display {
+      font-size: 40px; font-weight: bold; color: #1565c0;
+      background: #e3f2fd; border-radius: 12px; padding: 16px 24px;
+      text-align: center; letter-spacing: 8px; margin: 10px 0;
+    }
+    .otp-timer { text-align: center; color: #888; font-size: 13px; }
+
+    .summary-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+    .summary-row:last-child { border-bottom: none; font-weight: bold; }
+    .green { color: #2e7d32; }
+    .red { color: #c62828; }
+
+    .cash-box {
+      background: linear-gradient(135deg, #1565c0, #42a5f5);
+      color: white; border-radius: 12px; padding: 18px 22px;
+      margin-bottom: 14px;
+    }
+    .cash-box .label { font-size: 13px; opacity: 0.85; }
+    .cash-box .amount { font-size: 36px; font-weight: bold; }
+
+    .readonly-notice {
+      background: #fff3e0; border: 1px solid #ffb74d; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; color: #e65100; margin-bottom: 14px; display: none;
+    }
+
+    .tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tab {
+      padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;
+      background: #e3f2fd; color: #1565c0; border: 1.5px solid #bbdefb; font-weight: 600;
+    }
+    .tab.active { background: #1565c0; color: white; border-color: #1565c0; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Stock Age Badges */
+    .age-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .age-fresh  { background: #e8f5e9; color: #2e7d32; }
+    .age-medium { background: #fff3e0; color: #e65100; }
+    .age-risk   { background: #ffebee; color: #c62828; animation: blink-risk 1.5s infinite; }
+    @keyframes blink-risk { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    /* Forecast card */
+    .forecast-card {
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+      border-left: 4px solid #1565c0; background: #f0f7ff;
+    }
+    .forecast-card.warn { border-color: #e65100; background: #fff3e0; }
+    .forecast-card.danger { border-color: #c62828; background: #ffebee; }
+
+    /* ===== DAMAGE VIDEO MODALS ===== */
+    .dmg-view-modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8); z-index: 999;
+      align-items: flex-start; justify-content: center;
+      padding-top: 30px;
+    }
+    .dmg-view-modal-backdrop.open { display: flex; }
+    .dmg-view-modal {
+      background: white; border-radius: 16px; padding: 24px;
+      width: 96%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+    }
+    .dmg-view-modal h3 { color: #c62828; margin-bottom: 16px; }
+    .dmg-entry-card {
+      border: 1px solid #eee; border-radius: 10px; padding: 14px; margin-bottom: 12px;
+      background: #fafafa;
+    }
+    .dmg-entry-video { width: 100%; border-radius: 8px; max-height: 250px; margin-top: 6px; }
+    .dmg-entry-gps { font-size: 11px; color: #2e7d32; margin-top: 4px; }
+    .dmg-clickable { cursor: pointer; text-decoration: underline; color: #c62828; }
+
+    /* Manager Damage Modal */
+    .dmg-modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 999;
+      align-items: center; justify-content: center;
+    }
+    .dmg-modal-backdrop.open { display: flex; }
+    .dmg-modal {
+      background: white; border-radius: 16px; padding: 24px;
+      width: 94%; max-width: 480px; max-height: 92vh; overflow-y: auto;
+    }
+    .dmg-video-preview {
+      width: 100%; border-radius: 10px; background: #000;
+      max-height: 220px; display: none;
+    }
+    .upload-bar-wrap { background: #eee; border-radius: 6px; height: 8px; margin: 8px 0; display: none; }
+    .upload-bar { height: 8px; border-radius: 6px; background: #1565c0; width: 0%; transition: width 0.3s; }
+    .gps-pill { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px;
+      padding: 6px 10px; font-size: 12px; color: #1565c0; margin-bottom: 8px; display: none; }
+    .rec-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      background: #c62828; margin-right: 6px; animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* Session warning */
+    .session-warning {
+      background: #fff3e0; border: 1px solid #ffb74d; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; color: #e65100; margin-bottom: 14px; display: none;
+    }
+
+  /* ═══════════════════════════════════════════════════════════════
+     MANAGER — MOBILE-FIRST UI  (≤768px = phone, bottom tab nav)
+     Desktop/tablet layout unchanged above 768px
+  ══════════════════════════════════════════════════════════════════ */
+
+  /* Bottom tab nav */
+  .mob-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    background: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    z-index: 9999;
+    box-shadow: 0 -4px 18px rgba(0,0,0,0.08);
+  }
+  .mob-nav-inner { display: flex; height: 100%; }
+  .mob-nav-btn {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px;
+    border: none; background: transparent;
+    color: #9e9e9e; font-size: 9.5px; font-weight: 600;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    padding: 6px 2px 10px; letter-spacing: 0.2px;
+  }
+  .mob-nav-btn .nav-icon { font-size: 21px; line-height: 1; transition: transform 0.15s; }
+  .mob-nav-btn.active { color: #1565c0; }
+  .mob-nav-btn.active .nav-icon { transform: scale(1.12); }
+
+  @media (max-width: 768px) {
+    body { background: #f0f2f5; }
+
+    /* Show mobile nav */
+    .mob-nav { display: block; }
+
+    /* Hide the desktop horizontal pill tabs */
+    .tabs { display: none !important; }
+
+    /* Container */
+    .container {
+      padding: 8px 10px 80px 10px !important;
+      max-width: 100% !important;
+    }
+
+    /* Topbar */
+    .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+    .topbar h2 { font-size: 15px; }
+    .topbar button { padding: 7px 10px; font-size: 12px; }
+    .topbar .user { font-size: 11px; }
+
+    /* Cash banner */
+    .cash-banner {
+      flex-wrap: wrap; gap: 8px;
+      padding: 14px 12px !important;
+      border-radius: 16px !important;
+      margin-bottom: 12px !important;
+    }
+    .cash-box { padding: 10px 14px !important; border-radius: 12px !important; }
+    .cash-box .amount { font-size: 28px !important; }
+    .cash-box .label { font-size: 11px !important; }
+
+    /* Tab content — all hidden, shown via JS */
+    .tab-content { display: none !important; }
+    .tab-content.active { display: block !important; }
+
+    /* Cards */
+    .card { border-radius: 16px !important; padding: 14px 13px !important; margin-bottom: 12px !important; }
+    .card h3 { font-size: 14px !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
+
+    /* Inputs: prevent iOS zoom */
+    input, select, textarea {
+      font-size: 16px !important;
+      padding: 12px 13px !important;
+      border-radius: 12px !important;
+    }
+
+    /* Buttons */
+    .btn { padding: 14px 18px !important; font-size: 15px !important; border-radius: 13px !important; }
+    .btn-sm { padding: 7px 12px !important; font-size: 12px !important; border-radius: 8px !important; }
+
+    /* OTP / settlement code display */
+    .otp-display, #settlementCodeDisplay {
+      font-size: 38px !important; letter-spacing: 6px !important;
+    }
+
+    /* Tables */
+    .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { font-size: 11px !important; min-width: 460px; }
+    th, td { padding: 7px 8px !important; }
+
+    /* Performance table */
+    #branchPerfTable, #branchPerformanceTable {
+      min-width: 520px;
+    }
+
+    /* Form grids: stack vertically */
+    .form-grid-2 { grid-template-columns: 1fr !important; }
+
+    /* Readonly notice */
+    .readonly-notice { font-size: 13px !important; padding: 9px 12px !important; }
+
+    /* Summary rows */
+    .sum-row { font-size: 13px !important; padding: 6px 0 !important; }
+  }
+
+  @media (min-width: 769px) {
+    .mob-nav { display: none !important; }
+  }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h2>🏬 Manager Dashboard</h2>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <span id="topbarUser" style="font-size:13px;opacity:0.85;"></span>
+    <button onclick="refreshAll()">🔄 Refresh</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Session Warning -->
+  <div class="session-warning" id="sessionWarning">
+    ⚠️ Session expires in <span id="sessionCountdown"></span>. Please re-login soon.
+  </div>
+
+  <!-- Date Bar -->
+  <div class="date-bar">
+    <label>📅 Date:</label>
+    <select id="historyDate" onchange="onDateChange()"></select>
+    <button class="btn btn-blue" onclick="onDateChange()" style="padding:7px 14px;">Load</button>
+  </div>
+
+  <div class="readonly-notice" id="readonlyNotice">
+    📖 Viewing past date — read only. Switch to Today to make changes.
+  </div>
+
+  <!-- Top Banner: Cash + Warehouse Stocks -->
+  <div style="display:flex;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+    <div style="background:linear-gradient(135deg,#1565c0,#42a5f5);color:white;border-radius:12px;padding:16px 20px;flex:1;min-width:160px;text-align:center;">
+      <div style="font-size:12px;opacity:0.85;text-transform:uppercase;letter-spacing:0.5px;">💵 Cash With Me</div>
+      <div id="myCashAmount" style="font-size:36px;font-weight:bold;line-height:1.2;">—</div>
+      <div style="font-size:11px;opacity:0.7;">right now</div>
+    </div>
+    <div onclick="toggleWarehouseBreakdown()"
+      style="background:linear-gradient(135deg,#0d47a1,#1976d2);color:white;border-radius:12px;
+        padding:16px 20px;flex:2;min-width:200px;text-align:center;cursor:pointer;user-select:none;">
+      <div style="font-size:12px;opacity:0.85;text-transform:uppercase;letter-spacing:0.5px;">🏭 Total Stock</div>
+      <div id="totalStockBanner" style="font-size:36px;font-weight:bold;line-height:1.2;">—</div>
+      <div style="font-size:11px;opacity:0.7;">pcs across all warehouses &nbsp;▾ tap for breakdown</div>
+    </div>
+  </div>
+  <div id="warehouseBannerBlocks" style="display:none;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
+  <div id="bannerCollapsedSpacer" style="margin-bottom:14px;"></div>
+
+  <!-- Desktop horizontal tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('tabTransfer',this)">📦 Stock & Sales</div>
+    <div class="tab" onclick="showTab('tabRecon',this)">📋 Branch Report</div>
+    <div class="tab" onclick="showTab('tabSettle',this)">🤝 Settlement</div>
+    <div class="tab" onclick="showTab('tabExpense',this)">🧾 Expenses</div>
+    <div class="tab" onclick="showTab('tabSummary',this)">📊 My Summary</div>
+    <div class="tab" onclick="showTab('tabPerf',this)">📈 Performance</div>
+  </div>
+
+  <!-- Mobile bottom tab nav -->
+  <nav class="mob-nav" aria-label="Navigation">
+    <div class="mob-nav-inner">
+      <button class="mob-nav-btn active" onclick="showTab('tabTransfer',null,this)">
+        <span class="nav-icon">📦</span><span>Stock</span>
+      </button>
+      <button class="mob-nav-btn" onclick="showTab('tabRecon',null,this)">
+        <span class="nav-icon">📋</span><span>Branches</span>
+      </button>
+      <button class="mob-nav-btn" onclick="showTab('tabSettle',null,this)">
+        <span class="nav-icon">🤝</span><span>Settle</span>
+      </button>
+      <button class="mob-nav-btn" onclick="showTab('tabExpense',null,this)">
+        <span class="nav-icon">🧾</span><span>Expenses</span>
+      </button>
+      <button class="mob-nav-btn" onclick="showTab('tabSummary',null,this)">
+        <span class="nav-icon">📊</span><span>Summary</span>
+      </button>
+      <button class="mob-nav-btn" onclick="showTab('tabPerf',null,this)">
+        <span class="nav-icon">📈</span><span>Perf</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- TAB: Stock & Sales -->
+  <div class="tab-content active" id="tabTransfer">
+
+    <div class="card">
+      <h3>🏭 Warehouse Stock Overview</h3>
+      <div id="warehouseStockOverview" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="color:#999;font-size:13px;">Loading...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💰 Bulk Sale from Warehouse</h3>
+      <div class="form-row">
+        <label>Warehouse</label>
+        <select id="bulkWarehouse" onchange="loadBulkWarehousePreview()"></select>
+      </div>
+      <div id="bulkWarehousePreview" style="font-size:13px;color:#555;margin-bottom:8px;padding:8px;background:#f5f5f5;border-radius:6px;display:none;"></div>
+      <div class="form-row">
+        <label>Quantity</label>
+        <input type="number" id="bulkQty" placeholder="Quantity" min="1" />
+      </div>
+      <div class="form-row">
+        <label>Selling Price per Piece (₹)</label>
+        <input type="number" id="bulkPrice" placeholder="Price per piece" min="1" />
+      </div>
+      <div class="form-row">
+        <label>Payment Type</label>
+        <select id="bulkPayment">
+          <option value="cash">💵 Cash</option>
+          <option value="upi">📱 UPI</option>
+        </select>
+      </div>
+      <div id="bulkPreview" style="font-size:13px;color:#555;margin-bottom:12px;"></div>
+      <button class="btn btn-green" onclick="bulkSell()" id="bulkSellBtn">Record Bulk Sale</button>
+    </div>
+
+    <!-- Mark Warehouse Damaged -->
+    <div class="card">
+      <h3>⚠️ Mark Warehouse Damaged Stock</h3>
+      <div class="form-row">
+        <label>Select Warehouse</label>
+        <select id="mgrDamageWarehouse"></select>
+      </div>
+      <div class="form-row">
+        <label>Damaged Quantity</label>
+        <input type="number" id="mgrDamageQty" placeholder="Enter damaged quantity" min="1" />
+      </div>
+      <button class="btn btn-red" onclick="openManagerDamageModal()">📹 Record Damage Video</button>
+    </div>
+
+    <!-- Transfer Stock -->
+    <div class="card">
+      <h3>📦 Transfer Stock to Branch</h3>
+      <div class="form-row">
+        <label>From Warehouse</label>
+        <select id="transferWarehouse" onchange="loadWarehouseStockPreview()"></select>
+      </div>
+      <div id="warehouseStockPreview" style="font-size:13px;color:#555;margin-bottom:12px;padding:8px;background:#f5f5f5;border-radius:6px;"></div>
+      <div class="form-row">
+        <label>To Branch</label>
+        <select id="transferBranch"></select>
+      </div>
+      <div class="form-row">
+        <label>Quantity</label>
+        <input type="number" id="transferQty" placeholder="Enter quantity to transfer" min="1" />
+      </div>
+      <button class="btn btn-blue" onclick="transferStock()" id="transferBtn">Transfer Stock</button>
+    </div>
+
+    <!-- Transfer History -->
+    <div class="card">
+      <h3>📋 Transfer History</h3>
+      <table>
+        <thead><tr><th>Warehouse</th><th>Branch</th><th>Qty</th><th>By</th><th>Time</th></tr></thead>
+        <tbody id="transferList"></tbody>
+      </table>
+    </div>
+
+    <!-- Warehouse Movement Ledger -->
+    <div class="card">
+      <h3>📋 Warehouse Movement Ledger</h3>
+      <div class="form-row">
+        <label>Select Warehouse</label>
+        <select id="movementWarehouse"></select>
+      </div>
+      <button class="btn btn-blue" onclick="loadWarehouseMovementLedger()">View Ledger</button>
+      <table style="margin-top:12px;">
+        <thead><tr><th>Type</th><th>Time</th><th>By</th><th>To/Purpose</th><th>Change</th><th>Running Stock</th></tr></thead>
+        <tbody id="warehouseMovementLedger"></tbody>
+      </table>
+    </div>
+
+    <!-- Warehouse Stock Ledger detail -->
+    <div class="card">
+      <h3>📦 Warehouse Stock Ledger Detail</h3>
+      <div class="form-row">
+        <label>Select Warehouse</label>
+        <select id="stockWarehouseView"></select>
+      </div>
+      <button class="btn btn-blue" onclick="loadWarehouseStock()">View Stock</button>
+      <div id="warehouseStockStatus" style="margin-top:12px;"></div>
+    </div>
+
+  </div>
+
+  <!-- TAB: Branch Report -->
+  <div class="tab-content" id="tabRecon">
+    <div class="card">
+      <h3>📋 Branch Reconciliation Report</h3>
+      <div class="form-row">
+        <label>Select Branch</label>
+        <select id="reconBranch"></select>
+      </div>
+      <button class="btn btn-blue" onclick="loadReconciliation()">Load Report</button>
+      <button class="btn btn-green" onclick="loadBranchSalesReport()" style="margin-top:8px;">View Full Ledger</button>
+      <div id="reconReport" style="margin-top:14px;"></div>
+    </div>
+    <div class="card" id="salesLedgerCard" style="display:none;">
+      <h3>🧾 Branch Sales Ledger</h3>
+      <table>
+        <thead><tr><th>Type</th><th>Date</th><th>Time</th><th>Qty</th><th>Stock Δ</th><th>Cash Δ</th><th>UPI Δ</th></tr></thead>
+        <tbody id="branchSalesLedger"></tbody>
+      </table>
+      <div id="branchSalesTotals" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Branch Payment Ledger -->
+    <div class="card">
+      <h3>💳 Branch Payment Ledger</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
+        <div>
+          <label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">Branch</label>
+          <select id="bplBranchFilter" style="padding:8px 10px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;">
+            <option value="">All Branches</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">From Date</label>
+          <input type="date" id="bplFrom" style="padding:8px 10px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;" />
+        </div>
+        <div>
+          <label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">To Date</label>
+          <input type="date" id="bplTo" style="padding:8px 10px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;" />
+        </div>
+        <button class="btn btn-blue" onclick="loadBranchPaymentLedger()" style="padding:8px 16px;font-size:13px;">Load</button>
+      </div>
+      <div id="branchPaymentLedgerDiv"><div style="color:#999;font-size:13px;">Select filters and tap Load.</div></div>
+    </div>
+
+    <!-- All Branch Performance Dashboard -->
+    <div class="card">
+      <h3>📊 All Branch Performance Dashboard</h3>
+      <button class="btn btn-blue" onclick="loadBranchReportDashboard()" style="margin-bottom:14px;">Load Dashboard</button>
+      <div id="branchReportDashboard">
+        <div style="color:#999;font-size:13px;">Click Load Dashboard to view all branches</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Settlement -->
+  <div class="tab-content" id="tabSettle">
+    <div class="card">
+      <h3>🔑 Generate Code for Branch Collection</h3>
+      <p style="font-size:13px;color:#666;margin-bottom:12px;">Generate a 6-digit code. Show it to the branch — they enter it when confirming payment. Code is valid for 10 minutes.</p>
+      <button class="btn btn-blue" onclick="generateSettlementCode()">Generate New Code</button>
+      <div class="otp-display" id="settlementCode" style="display:none;"></div>
+      <div class="otp-timer" id="otpTimer"></div>
+    </div>
+
+    <div class="card">
+      <h3>⏳ Pending Branch Settlements</h3>
+      <button class="btn btn-blue" onclick="loadPendingSettlements()">Refresh</button>
+      <div id="pendingSettlements" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>💸 Pay Cash to Master</h3>
+      <div class="form-row">
+        <label>Amount Paying to Master (₹)</label>
+        <input type="number" id="payMasterAmount" placeholder="Amount" min="1" />
+      </div>
+      <div class="form-row">
+        <label>Master's 6-Digit Code</label>
+        <input type="number" id="masterOtp" placeholder="Enter code from master's screen" />
+      </div>
+      <button class="btn btn-green" onclick="submitMasterSettlement()">✅ Confirm Payment to Master</button>
+    </div>
+
+    <div class="card">
+      <h3>📜 My Settlement History (Last 30 Days)</h3>
+      <button class="btn btn-blue" onclick="loadMasterLedger()">Load History</button>
+      <div id="masterLedger" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- TAB: Expenses -->
+  <div class="tab-content" id="tabExpense">
+    <div class="card">
+      <h3>🧾 Add Today's Expense</h3>
+      <div class="form-row">
+        <label>Amount (₹)</label>
+        <input type="number" id="expenseAmount" placeholder="Expense amount" min="1" />
+      </div>
+      <div class="form-row">
+        <label>Description</label>
+        <textarea id="expenseDesc" rows="2" placeholder="What was this expense for?"></textarea>
+      </div>
+      <button class="btn btn-orange" onclick="addManagerExpense()" id="addExpenseBtn">Add Expense</button>
+    </div>
+    <div class="card">
+      <h3>📋 Expenses for Selected Date</h3>
+      <div id="todayExpenses"><div style="color:#999;font-size:13px;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- TAB: My Summary -->
+  <div class="tab-content" id="tabSummary">
+    <div class="card">
+      <h3>💵 My Cash Collection Ledger</h3>
+      <button class="btn btn-blue" onclick="loadManagerCashLedger()" style="margin-bottom:14px;">Load My Cash Ledger</button>
+      <div id="managerCashLedger"><div style="color:#999;font-size:13px;">Click above to load</div></div>
+    </div>
+    <div class="card">
+      <h3>📊 My Daily Financial Summary</h3>
+      <button class="btn btn-blue" onclick="loadManagerSummary()" style="margin-bottom:14px;">Load My Summary</button>
+      <div id="managerSummary"><div style="color:#999;font-size:13px;">Click above to load</div></div>
+    </div>
+  </div>
+
+  <!-- TAB: Performance -->
+  <div class="tab-content" id="tabPerf">
+    <div class="card">
+      <h3>🏪 Branch Performance Dashboard</h3>
+      <table>
+        <thead><tr><th>Branch</th><th>Stock</th><th>Age</th><th>Sold</th><th>Cash Pcs</th><th>UPI Pcs</th><th>Damaged</th><th>Cash ₹</th><th>UPI ₹</th><th>Total ₹</th><th>Outstanding ₹</th></tr></thead>
+        <tbody id="branchPerformanceTable"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>🏬 Warehouse Performance</h3>
+      <table>
+        <thead><tr><th>Warehouse</th><th>Stock</th><th>Age</th><th>Sold</th><th>Cash Pcs</th><th>UPI Pcs</th><th>Damaged</th><th>Cash ₹</th><th>UPI ₹</th><th>Total ₹</th></tr></thead>
+        <tbody id="warehousePerformanceTable"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>👔 Manager Performance Dashboard</h3>
+      <button class="btn btn-blue" onclick="loadManagerPerformance()" style="margin-bottom:14px;">Load Manager Data</button>
+      <div id="managerPerformanceDiv"><div style="color:#999;font-size:13px;">Click above to load</div></div>
+    </div>
+
+    <!-- Damage Analytics -->
+    <div class="card">
+      <h3>📉 Damage Analytics</h3>
+      <button class="btn btn-red" onclick="loadDamageAnalytics()" style="margin-bottom:14px;">Load Damage Data</button>
+      <div id="damageAnalyticsDiv"><div style="color:#999;font-size:13px;">Click to load damage analytics</div></div>
+    </div>
+  </div>
+
+
+
+  <!-- UPI Modal for Bulk Sale -->
+  <div id="upiModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:20px;padding:28px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div id="upiScreenWaiting">
+        <div style="font-size:15px;font-weight:bold;color:#1565c0;margin-bottom:4px;">📱 UPI Payment — Bulk Sale</div>
+        <div style="font-size:13px;color:#777;margin-bottom:16px;">Ask buyer to scan and pay</div>
+        <div id="upiAmountDisplay" style="font-size:28px;font-weight:bold;color:#1565c0;background:#e3f2fd;border-radius:10px;padding:10px;margin-bottom:16px;"></div>
+        <img src="assets/QR.jpg" alt="UPI QR Code"
+          style="width:220px;height:220px;border-radius:12px;border:2px solid #e0e0e0;object-fit:contain;background:#f9f9f9;padding:8px;"
+          onerror="this.style.display='none';document.getElementById('qrFallback').style.display='flex';"
+        />
+        <div id="qrFallback" style="display:none;width:220px;height:220px;margin:0 auto;background:#f5f5f5;border:2px dashed #ccc;border-radius:12px;align-items:center;justify-content:center;font-size:13px;color:#999;padding:20px;">
+          ⚠️ QR not found.<br>Place at <b>assets/QR.jpg</b>
+        </div>
+        <div style="font-size:12px;color:#aaa;margin:12px 0 20px;">Buyer pays using any UPI app</div>
+        <button onclick="upiPaymentReceived()" style="width:100%;padding:14px;background:#2e7d32;color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;margin-bottom:10px;">✅ Payment Received</button>
+        <button onclick="upiPaymentCancelled()" style="width:100%;padding:12px;background:#f5f5f5;color:#666;border:1px solid #ddd;border-radius:10px;font-size:14px;cursor:pointer;">❌ Cancel / Buyer Refused</button>
+      </div>
+      <div id="upiScreenSuccess" style="display:none;">
+        <div style="font-size:60px;margin-bottom:12px;">✅</div>
+        <div style="font-size:20px;font-weight:bold;color:#2e7d32;margin-bottom:8px;">Payment Received!</div>
+        <div id="upiSuccessAmount" style="font-size:16px;color:#555;margin-bottom:20px;"></div>
+        <button onclick="closeUpiModal()" style="width:100%;padding:13px;background:#2e7d32;color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;">OK — Back to Dashboard</button>
+      </div>
+      <div id="upiScreenCancelled" style="display:none;">
+        <div style="font-size:60px;margin-bottom:12px;">❌</div>
+        <div style="font-size:20px;font-weight:bold;color:#c62828;margin-bottom:8px;">Payment Cancelled</div>
+        <div style="font-size:14px;color:#777;margin-bottom:20px;">Bulk sale has NOT been recorded.</div>
+        <button onclick="closeUpiModal()" style="width:100%;padding:13px;background:#c62828;color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;">OK — Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- Manager Damage Modal -->
+<div class="dmg-modal-backdrop" id="mgrDamageModalBackdrop">
+  <div class="dmg-modal">
+    <h3>⚠️ Warehouse Damage Evidence</h3>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:0.5px;margin-bottom:6px;">📍 Location</div>
+      <div class="gps-pill" id="mgrGpsPill">Fetching location...</div>
+      <div id="mgrGpsStatus" style="font-size:12px;color:#888;">Waiting for GPS...</div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:0.5px;margin-bottom:6px;">📹 Record Video</div>
+      <video id="mgrLiveCamera" class="dmg-video-preview" autoplay muted playsinline></video>
+      <video id="mgrRecordedPreview" class="dmg-video-preview" controls></video>
+      <div id="mgrRecStatus" style="font-size:13px;color:#888;margin-top:6px;"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button class="btn btn-red" id="mgrBtnStartRec" onclick="mgrStartRecording()" style="display:none;">🔴 Start Recording</button>
+        <button class="btn btn-orange" id="mgrBtnStopRec" onclick="mgrStopRecording()" style="display:none;">⏹ Stop</button>
+        <button class="btn" id="mgrBtnRetake" onclick="mgrRetakeVideo()" style="display:none;background:#555;color:white;">↺ Retake</button>
+      </div>
+    </div>
+    <div class="upload-bar-wrap" id="mgrUploadBarWrap">
+      <div class="upload-bar" id="mgrUploadBar"></div>
+    </div>
+    <div id="mgrUploadStatus" style="font-size:12px;color:#555;margin-bottom:8px;"></div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="btn btn-red" id="mgrBtnSubmitDamage" onclick="submitManagerDamage()" disabled>✅ Submit Damage Report</button>
+      <button class="btn" onclick="closeManagerDamageModal()" style="background:#eee;color:#333;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Damage Video Viewer Modal -->
+<div class="dmg-view-modal-backdrop" id="dmgViewModalBackdrop">
+  <div class="dmg-view-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 id="dmgViewTitle">📹 Damage Videos</h3>
+      <button onclick="closeDmgViewModal()" style="background:#eee;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px;">✕ Close</button>
+    </div>
+    <div id="dmgViewBody">Loading...</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+
+/* ===== SESSION MANAGEMENT ===== */
+const SESSION_DURATION = 3 * 60 * 60 * 1000;
+const SESSION_WARNING  = 30 * 60 * 1000;
+
+function checkSession() {
+  const loginTime = parseInt(localStorage.getItem("loginTime") || "0");
+  const elapsed = Date.now() - loginTime;
+  if (elapsed >= SESSION_DURATION) {
+    alert("⏰ Your session has expired. Please login again.");
+    localStorage.clear();
+    window.location.href = "login.html";
+    return false;
+  }
+  const remaining = SESSION_DURATION - elapsed;
+  if (remaining < SESSION_WARNING) {
+    const mins = Math.ceil(remaining / 60000);
+    document.getElementById("sessionWarning").style.display = "block";
+    document.getElementById("sessionCountdown").innerText = `${mins} min`;
+  } else {
+    document.getElementById("sessionWarning").style.display = "none";
+  }
+  return true;
+}
+setInterval(checkSession, 60000);
+
+/* ===== AUTH ===== */
+const loggedInUser = localStorage.getItem("loggedInUser");
+const loggedInRole = localStorage.getItem("loggedInRole");
+if (!loggedInUser || loggedInRole !== "manager") {
+  alert("Please login as Manager.");
+  window.location.href = "login.html";
+}
+checkSession();
+document.getElementById("topbarUser").innerText = "👤 " + loggedInUser;
+const managerId = loggedInUser;
+
+function logout() {
+  if (confirm("Logout?")) { localStorage.clear(); window.location.href = "login.html"; }
+}
+
+/* ===== FIREBASE ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBy8ImpP9kNEXMYGKI9CYpfYgkGWLUAtVc",
+  authDomain: "cocolush-e23df.firebaseapp.com",
+  projectId: "cocolush-e23df",
+  storageBucket: "cocolush-e23df.appspot.com",
+  messagingSenderId: "158824980719",
+  appId: "1:158824980719:web:d2e18f51aa6252cbd6fb1a"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ===== AUDIT TRAIL ===== */
+async function writeAuditLog(action, module, oldValue, newValue) {
+  try {
+    await db.collection("audit_logs").add({
+      user: managerId, role: "manager", action, module,
+      old_value: oldValue || null, new_value: newValue || null,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.warn("Audit log failed:", e); }
+}
+
+/* ===== DATE HELPERS ===== */
+function getTodayKey() {
+  const now = new Date();
+  const ist = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+  return ist.toISOString().slice(0, 10);
+}
+
+function getBusinessDateOffset(baseDate, offsetDays) {
+  const d = new Date(baseDate);
+  d.setDate(d.getDate() + offsetDays);
+  const ist = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+  return ist.toISOString().slice(0, 10);
+}
+
+let currentBusinessDate = getTodayKey();
+
+/* ===== STOCK AGE ===== */
+function getStockAgeCategory(inwardDate) {
+  if (!inwardDate) return { label: "?", class: "" };
+  const today = new Date(getTodayKey());
+  const inward = new Date(inwardDate);
+  const days = Math.floor((today - inward) / (1000 * 60 * 60 * 24));
+  if (days <= 1) return { label: `🟢 Fresh (${days}d)`, class: "age-fresh", days };
+  if (days <= 3) return { label: `🟡 Medium (${days}d)`, class: "age-medium", days };
+  return { label: `🔴 Risk (${days}d)`, class: "age-risk", days };
+}
+
+/* ===== TABS ===== */
+function showTab(tabId, desktopBtn, mobileBtn) {
+  // Switch tab content
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+
+  // Desktop: update pill tabs
+  document.querySelectorAll(".tabs .tab").forEach(t => t.classList.remove("active"));
+  if (desktopBtn) desktopBtn.classList.add("active");
+
+  // Mobile: update bottom nav buttons
+  document.querySelectorAll(".mob-nav-btn").forEach(b => b.classList.remove("active"));
+  if (mobileBtn) mobileBtn.classList.add("active");
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ===== ENSURE LEDGER HELPERS ===== */
+async function ensureWarehouseStockLedger(warehouseId, dateKey) {
+  const docId = `${dateKey}__${warehouseId}`;
+  const ref = db.collection("warehouse_stock_collection").doc(docId);
+  const snap = await ref.get();
+  if (snap.exists) return;
+  const yKey = getBusinessDateOffset(new Date(dateKey + "T00:00:00"), -1);
+  const ySnap = await db.collection("warehouse_stock_collection").doc(`${yKey}__${warehouseId}`).get();
+  const opening = ySnap.exists ? (ySnap.data().closing_stock || 0) : 0;
+  const inwardDate = ySnap.exists ? (ySnap.data().inward_date || null) : null;
+  await ref.set({
+    warehouseId, date: dateKey, opening_stock: opening, stock_received: 0,
+    stock_transferred: 0, stock_sold: 0, stock_damaged: 0,
+    closing_stock: opening, inward_date: inwardDate, createdAt: new Date()
+  });
+}
+
+async function ensureBranchStockLedger(branchId, dateKey) {
+  const docId = `${dateKey}__${branchId}`;
+  const ref = db.collection("branch_stock_collection").doc(docId);
+  const snap = await ref.get();
+  if (snap.exists) return;
+  const yKey = getBusinessDateOffset(new Date(dateKey + "T00:00:00"), -1);
+  const ySnap = await db.collection("branch_stock_collection").doc(`${yKey}__${branchId}`).get();
+  const opening = ySnap.exists ? (ySnap.data().closing_stock || 0) : 0;
+  const inwardDate = ySnap.exists ? (ySnap.data().inward_date || null) : null;
+  await ref.set({
+    branchId, date: dateKey, opening_stock: opening, stock_received: 0,
+    stock_sold: 0, stock_damaged: 0, closing_stock: opening,
+    inward_date: inwardDate, createdAt: new Date()
+  });
+}
+
+async function ensureManagerCashLedger(mgrId, dateKey) {
+  const ref = db.collection("manager_daily_ledger").doc(dateKey).collection("managers").doc(mgrId);
+  const snap = await ref.get();
+  if (snap.exists) return;
+  const yKey = getBusinessDateOffset(new Date(dateKey + "T00:00:00"), -1);
+  const ySnap = await db.collection("manager_daily_ledger").doc(yKey).collection("managers").doc(mgrId).get();
+  const openingCash = ySnap.exists ? (ySnap.data().closing_cash || 0) : 0;
+  await ref.set({
+    opening_cash: openingCash, collected_from_branches: 0,
+    collected_from_warehouse: 0, paid_to_master: 0,
+    closing_cash: openingCash, createdAt: new Date()
+  });
+}
+
+async function isDayOpen() {
+  const todayKey = getTodayKey();
+  const doc = await db.collection("daily_ledger").doc(todayKey).get();
+  if (!doc.exists) {
+    await db.collection("daily_ledger").doc(todayKey).set({ status: "open", createdAt: new Date() });
+    return true;
+  }
+  return doc.data().status === "open";
+}
+
+/* ===== DATE DROPDOWN ===== */
+function loadLast7DaysDropdown() {
+  const dropdown = document.getElementById("historyDate");
+  dropdown.innerHTML = "";
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = getBusinessDateOffset(d, 0);
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.innerText = (i === 0) ? `${key} (Today)` : key;
+    dropdown.appendChild(opt);
+  }
+  dropdown.value = getTodayKey();
+}
+
+function onDateChange() {
+  const selected = document.getElementById("historyDate").value;
+  currentBusinessDate = selected;
+  const isToday = selected === getTodayKey();
+  document.getElementById("readonlyNotice").style.display = isToday ? "none" : "block";
+  setActionButtonsDisabled(!isToday);
+  refreshAll();
+}
+
+function setActionButtonsDisabled(disabled) {
+  ["transferBtn", "bulkSellBtn", "addExpenseBtn"].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.disabled = disabled;
+  });
+}
+
+/* ===== LOAD DROPDOWNS ===== */
+async function loadAllDropdowns() {
+  const whSnap = await db.collection("warehouses").get();
+  const brSnap = await db.collection("users").where("role", "==", "branch").get();
+
+  const warehouseDropdowns = ["transferWarehouse", "stockWarehouseView", "bulkWarehouse", "movementWarehouse", "mgrDamageWarehouse"];
+  warehouseDropdowns.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = "";
+    whSnap.forEach(doc => {
+      el.innerHTML += `<option value="${doc.id}">${doc.data().name || doc.id}</option>`;
+    });
+  });
+
+  ["transferBranch", "reconBranch"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = "";
+    brSnap.forEach(doc => { el.innerHTML += `<option value="${doc.id}">${doc.id}</option>`; });
+  });
+
+  const bplFilter = document.getElementById("bplBranchFilter");
+  if (bplFilter) {
+    bplFilter.innerHTML = `<option value="">All Branches</option>`;
+    brSnap.forEach(doc => { bplFilter.innerHTML += `<option value="${doc.id}">${doc.id}</option>`; });
+  }
+
+  const todayKey = getTodayKey();
+  const d30 = new Date(); d30.setDate(d30.getDate() - 30);
+  const d30Key = getBusinessDateOffset(d30, 0);
+  const bplFrom = document.getElementById("bplFrom");
+  const bplTo   = document.getElementById("bplTo");
+  if (bplFrom) bplFrom.value = d30Key;
+  if (bplTo)   bplTo.value   = todayKey;
+}
+
+/* ===== WAREHOUSE STOCK PREVIEW ===== */
+async function loadWarehouseStockPreview() {
+  const warehouseId = document.getElementById("transferWarehouse").value;
+  if (!warehouseId) return;
+  const snap = await db.collection("warehouse_stock_collection").doc(`${getTodayKey()}__${warehouseId}`).get();
+  const preview = document.getElementById("warehouseStockPreview");
+  if (snap.exists) {
+    const d = snap.data();
+    const age = getStockAgeCategory(d.inward_date);
+    preview.innerHTML = `Available stock: ${d.closing_stock || 0} pcs${d.inward_date ? ` &nbsp; <span class="age-badge ${age.class}">${age.label}</span>` : ""}`;
+  } else {
+    preview.innerText = "No stock ledger for today yet.";
+  }
+}
+
+/* ===== TRANSFER STOCK ===== */
+async function transferStock() {
+  if (!(await isDayOpen())) { alert("Day is closed."); return; }
+  const warehouseId = document.getElementById("transferWarehouse").value;
+  const branchId    = document.getElementById("transferBranch").value;
+  const qty         = parseInt(document.getElementById("transferQty").value);
+  if (!warehouseId || !branchId || !qty || qty <= 0) { alert("Fill in all fields correctly."); return; }
+
+  const dateKey = getTodayKey();
+  document.getElementById("transferBtn").disabled = true;
+  document.getElementById("transferBtn").innerText = "Transferring...";
+  try {
+    await ensureWarehouseStockLedger(warehouseId, dateKey);
+    await ensureBranchStockLedger(branchId, dateKey);
+
+    const whRef = db.collection("warehouse_stock_collection").doc(`${dateKey}__${warehouseId}`);
+    const brRef = db.collection("branch_stock_collection").doc(`${dateKey}__${branchId}`);
+    const [whSnap, brSnap] = await Promise.all([whRef.get(), brRef.get()]);
+    const wh = whSnap.data(); const br = brSnap.data();
+
+    if ((wh.closing_stock || 0) < qty) {
+      alert(`Insufficient warehouse stock! Available: ${wh.closing_stock} pcs`); return;
+    }
+
+    // Transfer inward_date with the stock
+    const inwardDate = wh.inward_date || null;
+
+    await whRef.update({
+      stock_transferred: (wh.stock_transferred || 0) + qty,
+      closing_stock: wh.opening_stock + (wh.stock_received || 0)
+        - ((wh.stock_transferred || 0) + qty) - (wh.stock_sold || 0) - (wh.stock_damaged || 0)
+    });
+
+    await brRef.update({
+      stock_received: (br.stock_received || 0) + qty,
+      closing_stock: br.opening_stock + ((br.stock_received || 0) + qty)
+        - (br.stock_sold || 0) - (br.stock_damaged || 0),
+      ...(inwardDate ? { inward_date: inwardDate } : {})
+    });
+
+    await db.collection("stock_transfer").add({
+      warehouseId, branchId, quantity: qty, managerId,
+      date: new Date(), businessDate: dateKey
+    });
+
+    // Audit trail
+    writeAuditLog("STOCK_TRANSFERRED", "stock_transfer", null,
+      `${qty} pcs from ${warehouseId} to ${branchId}`);
+
+    document.getElementById("transferQty").value = "";
+    alert(`✅ Transferred ${qty} pcs from warehouse to ${branchId}`);
+    loadTransfers();
+    loadWarehouseStockPreview();
+    loadWarehouseStockOverview();
+    loadWarehouseBannerBlocks();
+  } catch(err) {
+    console.error(err); alert("Error. Try again.");
+  } finally {
+    document.getElementById("transferBtn").disabled = false;
+    document.getElementById("transferBtn").innerText = "Transfer Stock";
+  }
+}
+
+/* ===== TRANSFER HISTORY ===== */
+async function loadTransfers() {
+  const tbody = document.getElementById("transferList");
+  tbody.innerHTML = "";
+  const dateKey = currentBusinessDate;
+  const whMap = {};
+  const whSnap = await db.collection("warehouses").get();
+  whSnap.forEach(w => { whMap[w.id] = w.data().name; });
+  const snap = await db.collection("stock_transfer").where("businessDate", "==", dateKey).get();
+  if (snap.empty) { tbody.innerHTML = `<tr><td colspan="5" style="color:#bbb;text-align:center;">No transfers</td></tr>`; return; }
+  const rows = [];
+  snap.forEach(doc => rows.push(doc.data()));
+  rows.sort((a, b) => b.date.toDate() - a.date.toDate());
+  rows.forEach(d => {
+    tbody.innerHTML += `<tr>
+      <td>${whMap[d.warehouseId] || d.warehouseId}</td><td>${d.branchId}</td>
+      <td>${d.quantity}</td><td>${d.managerId || "—"}</td>
+      <td>${d.date.toDate().toLocaleTimeString()}</td>
+    </tr>`;
+  });
+}
+
+/* ===== WAREHOUSE STOCK VIEW ===== */
+async function loadWarehouseStock() {
+  const warehouseId = document.getElementById("stockWarehouseView").value;
+  const div = document.getElementById("warehouseStockStatus");
+  div.innerHTML = "";
+  const snap = await db.collection("warehouse_stock_collection")
+    .doc(`${currentBusinessDate}__${warehouseId}`).get();
+  if (!snap.exists) { div.innerHTML = `<p style="color:#999;">No stock ledger for this date.</p>`; return; }
+  const d = snap.data();
+  const age = getStockAgeCategory(d.inward_date);
+  div.innerHTML = `
+    <div style="font-size:14px;">
+      ${d.inward_date ? `<div style="padding:5px 0;border-bottom:1px solid #eee;">🕐 Inward Date: <b>${d.inward_date}</b> &nbsp; <span class="age-badge ${age.class}">${age.label}</span></div>` : ""}
+      <div style="padding:5px 0;border-bottom:1px solid #eee;">Opening Stock: ${d.opening_stock} pcs</div>
+      <div style="padding:5px 0;border-bottom:1px solid #eee;color:#2e7d32;">+ Received: ${d.stock_received} pcs</div>
+      <div style="padding:5px 0;border-bottom:1px solid #eee;color:#c62828;">− Transferred Out: ${d.stock_transferred} pcs</div>
+      <div style="padding:5px 0;border-bottom:1px solid #eee;color:#c62828;">− Bulk Sold: ${d.stock_sold || 0} pcs</div>
+      <div style="padding:5px 0;border-bottom:1px solid #eee;color:#c62828;">− Damaged: ${d.stock_damaged} pcs</div>
+      <div style="padding:6px 0;font-weight:bold;font-size:15px;">= Closing Stock: ${d.closing_stock} pcs</div>
+    </div>
+  `;
+}
+
+/* ===== BULK SALE ===== */
+document.getElementById("bulkQty").addEventListener("input", updateBulkPreview);
+document.getElementById("bulkPrice").addEventListener("input", updateBulkPreview);
+function updateBulkPreview() {
+  const qty = parseInt(document.getElementById("bulkQty").value);
+  const price = parseFloat(document.getElementById("bulkPrice").value);
+  const preview = document.getElementById("bulkPreview");
+  if (qty > 0 && price > 0) { preview.innerText = `Total = ${qty} × ₹${price} = ₹${qty * price}`; }
+  else { preview.innerText = ""; }
+}
+
+async function bulkSell() {
+  if (!(await isDayOpen())) { alert("Day is closed."); return; }
+  const warehouseId = document.getElementById("bulkWarehouse").value;
+  const qty   = parseInt(document.getElementById("bulkQty").value);
+  const price = parseFloat(document.getElementById("bulkPrice").value);
+  const payment = document.getElementById("bulkPayment").value;
+  if (!warehouseId || !qty || qty <= 0 || !price || price <= 0) { alert("Fill all fields correctly."); return; }
+
+  const amount   = qty * price;
+  const todayKey = getTodayKey();
+  await ensureWarehouseStockLedger(warehouseId, todayKey);
+  const stockRef  = db.collection("warehouse_stock_collection").doc(`${todayKey}__${warehouseId}`);
+  const stockSnap = await stockRef.get();
+  const s = stockSnap.data();
+  if ((s.closing_stock || 0) < qty) { alert(`Insufficient stock! Available: ${s.closing_stock} pcs`); return; }
+
+  if (payment === "upi") {
+    pendingBulkSale = { warehouseId, qty, price, amount, todayKey, stockRef, s };
+    showUpiModal(qty, amount); return;
+  }
+
+  document.getElementById("bulkSellBtn").disabled = true;
+  document.getElementById("bulkSellBtn").innerText = "Recording...";
+  try {
+    await recordBulkSale(warehouseId, qty, price, amount, "cash", todayKey, stockRef, s);
+    document.getElementById("bulkQty").value = "";
+    document.getElementById("bulkPrice").value = "";
+    document.getElementById("bulkPreview").innerText = "";
+    alert(`✅ Bulk sale recorded: ${qty} pcs × ₹${price} = ₹${amount} (CASH)`);
+    writeAuditLog("BULK_SALE", "warehouse_sales", null, `${qty} pcs | ₹${amount} | ${warehouseId}`);
+    loadMyCash(); loadWarehouseBannerBlocks(); loadWarehouseStockOverview();
+  } catch(err) { console.error(err); alert("Error. Try again."); }
+  finally {
+    document.getElementById("bulkSellBtn").disabled = false;
+    document.getElementById("bulkSellBtn").innerText = "Record Bulk Sale";
+  }
+}
+
+async function recordBulkSale(warehouseId, qty, price, amount, payment, todayKey, stockRef, s) {
+  await db.collection("warehouse_sales").add({
+    warehouseId, quantity: qty, price, amount,
+    paymentType: payment, managerId, date: new Date(), businessDate: todayKey
+  });
+  await stockRef.update({
+    stock_sold: (s.stock_sold || 0) + qty,
+    closing_stock: s.opening_stock + (s.stock_received || 0)
+      - (s.stock_transferred || 0) - ((s.stock_sold || 0) + qty) - (s.stock_damaged || 0)
+  });
+  if (payment === "cash") {
+    await ensureManagerCashLedger(managerId, todayKey);
+    const mgrRef = db.collection("manager_daily_ledger").doc(todayKey).collection("managers").doc(managerId);
+    const mgrSnap = await mgrRef.get();
+    const m = mgrSnap.data();
+    const newWarehouseCash = (m.collected_from_warehouse || 0) + amount;
+    await mgrRef.update({
+      collected_from_warehouse: newWarehouseCash,
+      closing_cash: (m.opening_cash || 0) + (m.collected_from_branches || 0) + newWarehouseCash - (m.paid_to_master || 0)
+    });
+  }
+}
+
+/* ===== WAREHOUSE MOVEMENT LEDGER ===== */
+async function loadWarehouseMovementLedger() {
+  const warehouseId = document.getElementById("movementWarehouse").value;
+  const tbody = document.getElementById("warehouseMovementLedger");
+  tbody.innerHTML = "";
+  const dateKey = currentBusinessDate;
+  const ledgerSnap = await db.collection("warehouse_stock_collection").doc(`${dateKey}__${warehouseId}`).get();
+  if (!ledgerSnap.exists) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:#bbb;">No ledger for selected date</td></tr>`; return;
+  }
+  const L = ledgerSnap.data();
+  let runningStock = L.opening_stock || 0;
+  tbody.innerHTML += `<tr style="background:#f9f9f9;font-weight:bold;"><td>OPENING</td><td>—</td><td>—</td><td>Opening Balance</td><td style="color:#2e7d32;">+${runningStock}</td><td>${runningStock}</td></tr>`;
+  const events = [];
+  const inSnap = await db.collection("stock_inward").where("warehouseId", "==", warehouseId).where("businessDate", "==", dateKey).get();
+  inSnap.forEach(doc => { const d = doc.data(); events.push({ type: "INWARD", qty: d.quantity, by: "master", to: "Inward from vendor", time: d.date.toDate() }); });
+  const trSnap = await db.collection("stock_transfer").where("warehouseId", "==", warehouseId).where("businessDate", "==", dateKey).get();
+  trSnap.forEach(doc => { const d = doc.data(); events.push({ type: "TRANSFER", qty: d.quantity, by: d.managerId || "manager", to: d.branchId, time: d.date.toDate() }); });
+  const saleSnap = await db.collection("warehouse_sales").where("warehouseId", "==", warehouseId).where("businessDate", "==", dateKey).get();
+  saleSnap.forEach(doc => { const d = doc.data(); events.push({ type: "BULK SALE", qty: d.quantity, by: d.managerId, to: `₹${d.price}/pc`, time: d.date.toDate() }); });
+  events.sort((a, b) => a.time - b.time);
+  events.forEach(e => {
+    const isIn = e.type === "INWARD";
+    if (isIn) runningStock += e.qty; else runningStock -= e.qty;
+    tbody.innerHTML += `<tr><td>${e.type}</td><td>${e.time.toLocaleTimeString()}</td><td>${e.by}</td><td>${e.to}</td><td style="color:${isIn?'#2e7d32':'#c62828'}">${isIn?'+':'-'}${e.qty}</td><td>${runningStock}</td></tr>`;
+  });
+  tbody.innerHTML += `<tr style="font-weight:bold;background:#f0f0f0;"><td>CLOSING</td><td>—</td><td>—</td><td>End of Day</td><td>—</td><td>${L.closing_stock}</td></tr>`;
+}
+
+/* ===== BRANCH PAYMENT LEDGER ===== */
+async function loadBranchPaymentLedger() {
+  const div = document.getElementById("branchPaymentLedgerDiv");
+  const fromVal  = document.getElementById("bplFrom").value;
+  const toVal    = document.getElementById("bplTo").value;
+  const brFilter = document.getElementById("bplBranchFilter").value;
+  if (!fromVal || !toVal) { alert("Please select both dates."); return; }
+  div.innerHTML = `<div style="color:#999;font-size:13px;">Loading...</div>`;
+  try {
+    const snap = await db.collection("branch_settlements").get();
+    if (snap.empty) { div.innerHTML = `<div style="color:#bbb;font-size:13px;">No payments received yet.</div>`; return; }
+    const rows = [];
+    snap.forEach(doc => { const d = doc.data(); if (d.businessDate >= fromVal && d.businessDate <= toVal) rows.push({ id: doc.id, ...d }); });
+    const filtered = brFilter ? rows.filter(r => r.branchId === brFilter) : rows;
+    filtered.sort((a, b) => { const da = a.date?(a.date.toDate?a.date.toDate():new Date(a.date)):new Date(a.businessDate); const db2 = b.date?(b.date.toDate?b.date.toDate():new Date(b.date)):new Date(b.businessDate); return db2-da; });
+    if (filtered.length === 0) { div.innerHTML = `<div style="color:#bbb;font-size:13px;">No payments found.</div>`; return; }
+    let total = 0, html = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#e3f2fd;"><th style="padding:8px 10px;">Date</th><th style="padding:8px 10px;">Branch</th><th style="padding:8px 10px;text-align:right;">Amount ₹</th><th style="padding:8px 10px;">Received By</th><th style="padding:8px 10px;text-align:center;">Time</th><th style="padding:8px 10px;text-align:center;">Status</th></tr></thead><tbody>`;
+    filtered.forEach(d => {
+      const amt = d.branchDeclaredAmount || d.amount || 0; total += amt;
+      const dt = d.date?(d.date.toDate?d.date.toDate():new Date(d.date)):new Date(d.businessDate);
+      const statusHtml = d.status === "matched" ? `<span style="background:#e8f5e9;color:#2e7d32;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;">✅ Verified</span>` : `<span style="background:#fff3e0;color:#e65100;border-radius:4px;padding:2px 6px;font-size:11px;">⏳ ${d.status}</span>`;
+      const isMine = d.managerId === managerId;
+      html += `<tr style="border-bottom:1px solid #f0f0f0;${isMine?'background:#f1f8e9;':''}"><td style="padding:8px 10px;">${d.businessDate}</td><td style="padding:8px 10px;font-weight:600;">${d.branchId}</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:#1565c0;">₹${amt}</td><td style="padding:8px 10px;">${isMine?'<b>👤 Me</b>':d.managerId||'—'}</td><td style="padding:8px 10px;text-align:center;font-size:12px;">${dt.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})}</td><td style="padding:8px 10px;text-align:center;">${statusHtml}</td></tr>`;
+    });
+    html += `<tr style="background:#e3f2fd;font-weight:700;"><td colspan="2" style="padding:8px 10px;">Total (${filtered.length} payments)</td><td style="padding:8px 10px;text-align:right;color:#1565c0;">₹${total}</td><td colspan="3"></td></tr></tbody></table></div>`;
+    div.innerHTML = html;
+  } catch(err) { console.error(err); div.innerHTML = `<div style="color:#c62828;font-size:13px;">Error loading. Try again.</div>`; }
+}
+
+/* ===== RECONCILIATION ===== */
+async function loadReconciliation() {
+  const branchId = document.getElementById("reconBranch").value;
+  const div = document.getElementById("reconReport");
+  div.innerHTML = "Loading...";
+  const dateKey = currentBusinessDate;
+  const stockSnap = await db.collection("branch_stock_collection").doc(`${dateKey}__${branchId}`).get();
+  const cashSnap  = await db.collection("branch_daily_ledger").doc(dateKey).collection("branches").doc(branchId).get();
+  let upiToday = 0;
+  const upiSnap = await db.collection("branch_sales").where("branchId","==",branchId).where("businessDate","==",dateKey).where("paymentType","==","upi").get();
+  upiSnap.forEach(doc => { upiToday += doc.data().amount || 0; });
+  const S = stockSnap.exists ? stockSnap.data() : {};
+  const C = cashSnap.exists  ? cashSnap.data()  : {};
+  const age = getStockAgeCategory(S.inward_date);
+  div.innerHTML = `
+    <div style="font-size:14px;">
+      <div class="section-header">📦 STOCK FLOW</div>
+      ${S.inward_date ? `<div class="summary-row"><span>🕐 Stock Age</span><span class="age-badge ${age.class}">${age.label}</span></div>` : ""}
+      <div class="summary-row"><span>Opening Stock</span><span>${S.opening_stock||0} pcs</span></div>
+      <div class="summary-row"><span>+ Received Today</span><span>${S.stock_received||0} pcs</span></div>
+      <div class="summary-row"><span>− Sold Today</span><span>${S.stock_sold||0} pcs</span></div>
+      <div class="summary-row"><span>− Damaged Today</span><span>${S.stock_damaged||0} pcs</span></div>
+      <div class="summary-row"><span><b>Closing Stock</b></span><span class="green"><b>${S.closing_stock||0} pcs</b></span></div>
+      <br>
+      <div class="section-header">💰 MONEY FLOW</div>
+      <div class="summary-row"><span>Opening Cash</span><span>₹${C.opening_cash||0}</span></div>
+      <div class="summary-row"><span>Cash Sales Today</span><span>₹${C.cash_sales||0}</span></div>
+      <div class="summary-row"><span>UPI Sales Today</span><span>₹${upiToday}</span></div>
+      <div class="summary-row"><span>Paid to Manager</span><span class="red">₹${C.paid_to_manager||0}</span></div>
+      <div class="summary-row"><span><b>Pending Cash With Branch</b></span><span class="red"><b>₹${C.closing_cash||0}</b></span></div>
+    </div>
+  `;
+}
+
+async function loadBranchSalesReport() {
+  const branchId = document.getElementById("reconBranch").value;
+  const card = document.getElementById("salesLedgerCard");
+  card.style.display = "block";
+  const tbody    = document.getElementById("branchSalesLedger");
+  const totalsDiv = document.getElementById("branchSalesTotals");
+  tbody.innerHTML = ""; totalsDiv.innerHTML = "";
+  const dateKey   = currentBusinessDate;
+  const stockSnap = await db.collection("branch_stock_collection").doc(`${dateKey}__${branchId}`).get();
+  const cashSnap  = await db.collection("branch_daily_ledger").doc(dateKey).collection("branches").doc(branchId).get();
+  if (!stockSnap.exists) { tbody.innerHTML = `<tr><td colspan="7" style="color:#bbb;">No data</td></tr>`; return; }
+  const S = stockSnap.data();
+  const openingCash = cashSnap.exists ? (cashSnap.data().opening_cash||0) : 0;
+  const closingCash = cashSnap.exists ? (cashSnap.data().closing_cash||0) : 0;
+  let runningStock = S.opening_stock||0, totalCash = 0, totalUpi = 0;
+  tbody.innerHTML += `<tr><td><b>Opening</b></td><td>${dateKey}</td><td>—</td><td>—</td><td style="color:#2e7d32;">+${runningStock}</td><td style="color:#2e7d32;">₹${openingCash}</td><td>—</td></tr>`;
+  const events = [];
+  const salesSnap = await db.collection("branch_sales").where("branchId","==",branchId).where("businessDate","==",dateKey).get();
+  salesSnap.forEach(doc => { const d = doc.data(); events.push({ type:"SALE", qty:d.quantity, cash:d.paymentType==="cash"?d.amount:0, upi:d.paymentType==="upi"?d.amount:0, time:d.date.toDate() }); });
+  const dmgSnap = await db.collection("branch_damaged").where("branchId","==",branchId).where("businessDate","==",dateKey).get();
+  dmgSnap.forEach(doc => { const d = doc.data(); events.push({ type:"DAMAGED", qty:d.quantity, cash:0, upi:0, time:d.date.toDate(), videoUrl:d.videoUrl||null, gpsLat:d.gpsLat||null, gpsLng:d.gpsLng||null }); });
+  events.sort((a,b) => a.time-b.time);
+  events.forEach(e => {
+    runningStock -= e.qty; totalCash += e.cash; totalUpi += e.upi;
+    const dmgCell = (e.type==="DAMAGED" && e.videoUrl) ? `<span class="dmg-clickable" onclick="viewSingleDamageVideo('${e.videoUrl}','${e.qty}','${branchId}')">📹 View</span>` : (e.type==="DAMAGED"?`<span style="color:#bbb;font-size:11px;">no video</span>`:"—");
+    tbody.innerHTML += `<tr style="${e.type==='DAMAGED'?'background:#fff5f5;':''}"><td>${e.type==="DAMAGED"?'<span style="color:#c62828;font-weight:bold;">DAMAGED</span>':e.type}</td><td>${dateKey}</td><td>${e.time.toLocaleTimeString()}</td><td>${e.qty}</td><td style="color:#c62828;">-${e.qty}</td><td>${e.cash?'₹'+e.cash:'—'}</td><td>${e.upi?'₹'+e.upi:dmgCell}</td></tr>`;
+  });
+  tbody.innerHTML += `<tr style="font-weight:bold;background:#f0f0f0;"><td>CLOSING</td><td>${dateKey}</td><td>—</td><td>—</td><td>${S.closing_stock}</td><td>₹${closingCash}</td><td>—</td></tr>`;
+  totalsDiv.innerHTML = `<div class="summary-row"><span>Total Cash Sales</span><span class="green">₹${totalCash}</span></div><div class="summary-row"><span>Total UPI Sales</span><span class="green">₹${totalUpi}</span></div><div class="summary-row"><span><b>Net Sales</b></span><span class="green"><b>₹${totalCash+totalUpi}</b></span></div><div class="summary-row"><span>Closing Stock</span><span>${S.closing_stock} pcs</span></div><div class="summary-row"><span>Pending Cash</span><span class="red">₹${closingCash}</span></div>`;
+}
+
+/* ===== SETTLEMENT OTP ===== */
+let otpTimerInterval = null;
+
+function generateSettlementCode() {
+  const code    = Math.floor(100000 + Math.random() * 900000).toString();
+  const now     = new Date();
+  const expires = new Date(now.getTime() + 10 * 60000);
+  db.collection("active_settlement_codes").where("managerId","==",managerId).get().then(snap => {
+    snap.forEach(doc => doc.ref.delete());
+    db.collection("active_settlement_codes").add({ managerId, code, createdAt: now, expiresAt: expires }).then(() => {
+      const el = document.getElementById("settlementCode");
+      el.style.display = "block";
+      el.innerText = code;
+      if (otpTimerInterval) clearInterval(otpTimerInterval);
+      let remaining = 600;
+      const timerEl = document.getElementById("otpTimer");
+      otpTimerInterval = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) { clearInterval(otpTimerInterval); timerEl.innerText = "Code expired"; el.style.display = "none"; }
+        else { const m = Math.floor(remaining/60); const s = remaining%60; timerEl.innerText = `Valid for ${m}:${s.toString().padStart(2,'0')}`; }
+      }, 1000);
+      timerEl.innerText = "Valid for 10:00";
+    });
+  });
+}
+
+/* ===== PENDING SETTLEMENTS ===== */
+async function loadPendingSettlements() {
+  const div = document.getElementById("pendingSettlements");
+  div.innerHTML = "Loading...";
+  const snap = await db.collection("branch_settlements").where("managerId","==",managerId).where("status","==","pending").get();
+  if (snap.empty) { div.innerHTML = `<p style="color:#bbb;font-size:13px;">No pending settlements</p>`; return; }
+  div.innerHTML = "";
+  snap.forEach(doc => {
+    const d = doc.data();
+    div.innerHTML += `<div style="padding:10px;border:1px solid #eee;border-radius:8px;margin-bottom:8px;">Branch: <b>${d.branchId}</b> | Amount: <b>₹${d.branchDeclaredAmount}</b><button class="btn btn-green" style="margin-left:10px;padding:4px 10px;font-size:12px;" onclick="confirmSettlement('${doc.id}',true)">✅ Confirm</button><button class="btn btn-red" style="padding:4px 10px;font-size:12px;" onclick="confirmSettlement('${doc.id}',false)">❌ Reject</button></div>`;
+  });
+}
+
+function confirmSettlement(id, decision) {
+  db.collection("branch_settlements").doc(id).update({ managerConfirmed: decision, status: decision?"matched":"rejected", confirmedAt: new Date() })
+    .then(() => { alert(decision?"Confirmed!":"Rejected."); loadPendingSettlements(); });
+}
+
+/* ===== PAY MASTER ===== */
+async function submitMasterSettlement() {
+  if (!(await isDayOpen())) { alert("Day is closed."); return; }
+  const amount = parseInt(document.getElementById("payMasterAmount").value);
+  const otp    = document.getElementById("masterOtp").value.trim();
+  if (!amount || amount <= 0 || otp.length !== 6) { alert("Enter valid amount and master code."); return; }
+  const codeSnap = await db.collection("active_master_codes").where("code","==",otp).get();
+  if (codeSnap.empty) { alert("Invalid code. Ask master for a new one."); return; }
+  const codeData = codeSnap.docs[0].data();
+  if (codeData.expiresAt.toDate() < new Date()) { alert("Code expired."); codeSnap.docs[0].ref.delete(); return; }
+  const todayKey = getTodayKey();
+  await db.collection("manager_master_settlements").add({ managerId, amount, verifiedByCode: true, status: "matched", date: new Date(), businessDate: todayKey });
+  await ensureManagerCashLedger(managerId, todayKey);
+  const mgrRef  = db.collection("manager_daily_ledger").doc(todayKey).collection("managers").doc(managerId);
+  const mgrSnap = await mgrRef.get();
+  const m = mgrSnap.data();
+  const newPaid = (m.paid_to_master||0) + amount;
+  await mgrRef.update({ paid_to_master: newPaid, closing_cash: (m.opening_cash||0)+(m.collected_from_branches||0)+(m.collected_from_warehouse||0)-newPaid });
+  codeSnap.docs[0].ref.delete();
+  writeAuditLog("PAID_TO_MASTER", "manager_master_settlements", null, `₹${amount}`);
+  document.getElementById("payMasterAmount").value = "";
+  document.getElementById("masterOtp").value = "";
+  alert(`✅ ₹${amount} paid to Master confirmed!`);
+  loadMyCash(); loadManagerCashLedger();
+}
+
+/* ===== MASTER LEDGER ===== */
+async function loadMasterLedger() {
+  const div = document.getElementById("masterLedger");
+  div.innerHTML = "Loading...";
+  const snap = await db.collection("manager_master_settlements").where("managerId","==",managerId).get();
+  const rows = [];
+  snap.forEach(doc => rows.push(doc.data()));
+  rows.sort((a,b) => b.date.toDate()-a.date.toDate());
+  if (rows.length === 0) { div.innerHTML = `<p style="color:#bbb;font-size:13px;">No settlements in last 30 days</p>`; return; }
+  div.innerHTML = "";
+  rows.slice(0,30).forEach(d => { div.innerHTML += `<div style="padding:8px;border-bottom:1px solid #f0f0f0;font-size:13px;"><b>₹${d.amount}</b> paid to Master<span style="float:right;color:#999;">${d.date.toDate().toLocaleDateString()}</span></div>`; });
+}
+
+/* ===== EXPENSES ===== */
+async function addManagerExpense() {
+  if (currentBusinessDate !== getTodayKey()) { alert("Can only add expenses for today."); return; }
+  if (!(await isDayOpen())) { alert("Day is closed."); return; }
+  const amount = parseFloat(document.getElementById("expenseAmount").value);
+  const desc   = document.getElementById("expenseDesc").value.trim();
+  if (!amount || amount <= 0 || desc.length < 3) { alert("Enter valid amount and description."); return; }
+  const now = new Date();
+  await db.collection("manager_expenses").add({ managerId, amount, description: desc, businessDate: getTodayKey(), createdAt: now, editableTill: new Date(now.getTime() + 24*60*60*1000), edited: false, editedAt: null });
+  writeAuditLog("EXPENSE_ADDED", "manager_expenses", null, `₹${amount} — ${desc}`);
+  document.getElementById("expenseAmount").value = "";
+  document.getElementById("expenseDesc").value = "";
+  alert("Expense added."); loadTodayExpenses();
+}
+
+async function loadTodayExpenses() {
+  const div = document.getElementById("todayExpenses");
+  div.innerHTML = "";
+  const dateKey = currentBusinessDate;
+  const isToday = dateKey === getTodayKey();
+  const now = new Date();
+  const snap = await db.collection("manager_expenses").where("managerId","==",managerId).where("businessDate","==",dateKey).get();
+  if (snap.empty) { div.innerHTML = `<p style="color:#bbb;font-size:13px;">No expenses for this date</p>`; return; }
+  let total = 0;
+  snap.forEach(doc => {
+    const d = doc.data(); total += d.amount;
+    const editable = isToday && d.editableTill && d.editableTill.toDate() > now;
+    div.innerHTML += `<div style="padding:8px;border:1px solid #eee;border-radius:8px;margin-bottom:6px;font-size:13px;">₹${d.amount} — ${d.description}${d.edited?'<span style="color:#e65100;font-size:11px;"> ✏️ Edited</span>':""}${editable?`<button onclick="editExpense('${doc.id}')" style="margin-left:8px;padding:3px 8px;font-size:11px;background:#1565c0;color:white;border:none;border-radius:4px;cursor:pointer;">Edit</button><button onclick="deleteExpense('${doc.id}')" style="padding:3px 8px;font-size:11px;background:#c62828;color:white;border:none;border-radius:4px;cursor:pointer;">Delete</button>`:'<span style="color:#bbb;font-size:11px;margin-left:8px;">(Locked)</span>'}</div>`;
+  });
+  div.innerHTML += `<div style="font-weight:bold;font-size:14px;padding:6px 0;">Total Expenses: ₹${total}</div>`;
+}
+
+async function editExpense(id) {
+  const ref = db.collection("manager_expenses").doc(id);
+  const snap = await ref.get();
+  if (!snap.exists || !snap.data().editableTill || snap.data().editableTill.toDate() < new Date()) { alert("Edit window expired."); return; }
+  const oldData = snap.data();
+  const newAmt  = parseFloat(prompt("New amount:", oldData.amount));
+  const newDesc = prompt("New description:", oldData.description);
+  if (!newAmt || !newDesc) return;
+  writeAuditLog("EXPENSE_EDITED", "manager_expenses", `₹${oldData.amount} — ${oldData.description}`, `₹${newAmt} — ${newDesc}`);
+  await ref.update({ amount: newAmt, description: newDesc, edited: true, editedAt: new Date() });
+  loadTodayExpenses();
+}
+
+async function deleteExpense(id) {
+  const ref = db.collection("manager_expenses").doc(id);
+  const snap = await ref.get();
+  if (!snap.exists || !snap.data().editableTill || snap.data().editableTill.toDate() < new Date()) { alert("Delete window expired."); return; }
+  if (!confirm("Delete this expense?")) return;
+  writeAuditLog("EXPENSE_DELETED", "manager_expenses", `₹${snap.data().amount} — ${snap.data().description}`, null);
+  await ref.delete();
+  loadTodayExpenses();
+}
+
+/* ===== MY CASH POSITION ===== */
+async function loadMyCash() {
+  const el = document.getElementById("myCashAmount");
+  el.innerText = "Loading...";
+  const snap = await db.collection("manager_daily_ledger").doc(currentBusinessDate).collection("managers").doc(managerId).get();
+  el.innerText = snap.exists ? `₹${snap.data().closing_cash||0}` : "₹0";
+}
+
+/* ===== MY CASH LEDGER ===== */
+async function loadManagerCashLedger() {
+  const div = document.getElementById("managerCashLedger");
+  div.innerHTML = "Loading...";
+  const dateKey = currentBusinessDate;
+  const snap = await db.collection("manager_daily_ledger").doc(dateKey).collection("managers").doc(managerId).get();
+  if (!snap.exists) { div.innerHTML = `<p style="color:#bbb;font-size:13px;">No ledger for this date</p>`; return; }
+  const m = snap.data();
+  const total = (m.opening_cash||0)+(m.collected_from_branches||0)+(m.collected_from_warehouse||0);
+  let branchBreakdown = "";
+  const brSnap = await db.collection("branch_settlements").where("managerId","==",managerId).where("businessDate","==",dateKey).get();
+  const branchTotals = {};
+  brSnap.forEach(d => { const bd = d.data(); branchTotals[bd.branchId] = (branchTotals[bd.branchId]||0)+(bd.branchDeclaredAmount||0); });
+  Object.entries(branchTotals).forEach(([b,amt]) => { branchBreakdown += `<div style="padding:3px 0 3px 20px;font-size:13px;color:#555;">↳ ${b}: ₹${amt}</div>`; });
+  div.innerHTML = `<div style="font-size:14px;"><div class="section-header">💰 CASH POSITION — ${dateKey}</div><div class="summary-row"><span>Opening Cash</span><span>₹${m.opening_cash||0}</span></div><div class="summary-row"><span>+ From Branches</span><span class="green">₹${m.collected_from_branches||0}</span></div>${branchBreakdown}<div class="summary-row"><span>+ Warehouse Cash Sales</span><span class="green">₹${m.collected_from_warehouse||0}</span></div><div style="border-top:2px solid #eee;margin:8px 0;"></div><div class="summary-row"><span><b>Total Cash With Me</b></span><span><b>₹${total}</b></span></div><div class="summary-row"><span>(less) Cash Given To Master</span><span class="red">₹${m.paid_to_master||0}</span></div><div style="border-top:2px solid #1565c0;margin:8px 0;"></div><div class="summary-row" style="font-size:16px;"><span><b>Balance Cash With Me</b></span><span style="color:#1565c0;font-weight:bold;">₹${m.closing_cash||0}</span></div></div>`;
+}
+
+/* ===== MY SUMMARY ===== */
+async function loadManagerSummary() {
+  const div = document.getElementById("managerSummary");
+  div.innerHTML = "Loading...";
+  const dateKey = currentBusinessDate;
+  const brSnap2 = await db.collection("users").where("role","==","branch").get();
+  let branchCashTotal=0, branchUpiTotal=0, branchCashRows="", branchUpiRows="";
+  for (const b of brSnap2.docs) {
+    const bId = b.id;
+    const cashSnap = await db.collection("branch_daily_ledger").doc(dateKey).collection("branches").doc(bId).get();
+    const bCash = cashSnap.exists?(cashSnap.data().cash_sales||0):0;
+    let bUpi = 0;
+    const upiSnap = await db.collection("branch_sales").where("branchId","==",bId).where("businessDate","==",dateKey).where("paymentType","==","upi").get();
+    upiSnap.forEach(d => { bUpi += d.data().amount||0; });
+    if (bCash>0) branchCashRows += `<div style="padding:2px 0 2px 20px;font-size:13px;color:#555;">↳ ${bId}: ₹${bCash}</div>`;
+    if (bUpi>0)  branchUpiRows  += `<div style="padding:2px 0 2px 20px;font-size:13px;color:#555;">↳ ${bId}: ₹${bUpi}</div>`;
+    branchCashTotal+=bCash; branchUpiTotal+=bUpi;
+  }
+  const whSnap2 = await db.collection("warehouses").get();
+  let whCashTotal=0, whUpiTotal=0, whCashRows="", whUpiRows="";
+  for (const w of whSnap2.docs) {
+    const wId = w.id; const wName = w.data().name||wId; let wCash=0, wUpi=0;
+    const wsSnap = await db.collection("warehouse_sales").where("warehouseId","==",wId).where("businessDate","==",dateKey).get();
+    wsSnap.forEach(d => { const sd=d.data(); if(sd.paymentType==="cash") wCash+=sd.amount||0; else wUpi+=sd.amount||0; });
+    if (wCash>0) whCashRows += `<div style="padding:2px 0 2px 20px;font-size:13px;color:#555;">↳ ${wName}: ₹${wCash}</div>`;
+    if (wUpi>0)  whUpiRows  += `<div style="padding:2px 0 2px 20px;font-size:13px;color:#555;">↳ ${wName}: ₹${wUpi}</div>`;
+    whCashTotal+=wCash; whUpiTotal+=wUpi;
+  }
+  const totalRevenue = branchCashTotal+branchUpiTotal+whCashTotal+whUpiTotal;
+  const mySnap = await db.collection("manager_daily_ledger").doc(dateKey).collection("managers").doc(managerId).get();
+  const m = mySnap.exists?mySnap.data():{};
+  // ---- Outstanding: per-manager (from manager_daily_ledger) ----
+  let mgrOutRows = "", mgrOutTotal = 0;
+  const allMgrSnap = await db.collection("users").where("role","==","manager").get();
+  for (const mg of allMgrSnap.docs) {
+    const mId = mg.id;
+    const mLedger = await db.collection("manager_daily_ledger").doc(dateKey).collection("managers").doc(mId).get();
+    const mBalance = mLedger.exists ? (mLedger.data().closing_cash||0) : 0;
+    if (mBalance !== 0) {
+      const color = mBalance > 0 ? '#c62828' : '#2e7d32';
+      mgrOutRows += `<div style="padding:3px 0 3px 16px;font-size:13px;display:flex;justify-content:space-between;padding-right:8px;">
+        <span>👤 ${mId}</span><span style="color:${color};font-weight:700;">₹${mBalance.toLocaleString('en-IN')}</span>
+      </div>`;
+      mgrOutTotal += mBalance;
+    }
+  }
+  // ---- Outstanding: per-branch (cash not yet collected) ----
+  let brOutRows = "", brOutTotal = 0;
+  for (const b of brSnap2.docs) {
+    const bId = b.id;
+    const cashSnap = await db.collection("branch_daily_ledger").doc(dateKey).collection("branches").doc(bId).get();
+    const pending = cashSnap.exists ? (cashSnap.data().closing_cash||0) : 0;
+    if (pending > 0) {
+      brOutRows += `<div style="padding:3px 0 3px 16px;font-size:13px;display:flex;justify-content:space-between;padding-right:8px;">
+        <span>🏪 ${bId}</span><span style="color:#c62828;font-weight:700;">₹${pending.toLocaleString('en-IN')}</span>
+      </div>`;
+      brOutTotal += pending;
+    }
+  }
+  const totalOutstanding = mgrOutTotal + brOutTotal;
+  const outstandingSection = `
+    <div class="section-header">⚠️ OUTSTANDING</div>
+    ${mgrOutRows ? `<div style="font-size:11px;font-weight:700;color:#888;padding:4px 0 2px 16px;text-transform:uppercase;">Managers</div>${mgrOutRows}` : ''}
+    ${brOutRows  ? `<div style="font-size:11px;font-weight:700;color:#888;padding:4px 0 2px 16px;text-transform:uppercase;">Branches</div>${brOutRows}` : ''}
+    ${(!mgrOutRows && !brOutRows) ? '<div style="color:#bbb;padding:2px 0 2px 20px;font-size:13px;">No outstanding</div>' : ''}
+    <div style="border-top:2px solid #c62828;margin:6px 0;"></div>
+    <div class="summary-row" style="font-size:14px;"><span><b>Total Outstanding</b></span><span class="red"><b>₹${totalOutstanding.toLocaleString('en-IN')}</b></span></div>
+  `;
+
+  div.innerHTML = `<div style="font-size:14px;"><div class="section-header">📊 TODAY'S REVENUE — ${dateKey}</div><div class="summary-row"><span><b>Branch Cash</b></span><span class="green">₹${branchCashTotal}</span></div>${branchCashRows}<div class="summary-row"><span><b>Branch UPI</b></span><span class="green">₹${branchUpiTotal}</span></div>${branchUpiRows}<div class="summary-row"><span><b>Warehouse Cash</b></span><span class="green">₹${whCashTotal}</span></div>${whCashRows}<div class="summary-row"><span><b>Warehouse UPI</b></span><span class="green">₹${whUpiTotal}</span></div>${whUpiRows}<div style="border-top:2px solid #eee;margin:8px 0;"></div><div class="summary-row" style="font-size:15px;"><span><b>Total Revenue Today</b></span><span class="green"><b>₹${totalRevenue}</b></span></div><br><div class="section-header">💵 MY CASH POSITION</div><div class="summary-row"><span>Opening Cash</span><span>₹${m.opening_cash||0}</span></div><div class="summary-row"><span>Cash Collected Today</span><span class="green">₹${(m.collected_from_branches||0)+(m.collected_from_warehouse||0)}</span></div><div class="summary-row"><span>Given To Master</span><span class="red">₹${m.paid_to_master||0}</span></div><div style="border-top:2px solid #1565c0;margin:8px 0;"></div><div class="summary-row" style="font-size:15px;"><span><b>Cash With Me</b></span><span style="color:#1565c0;font-weight:bold;">₹${m.closing_cash||0}</span></div><br>${outstandingSection}</div>`;
+}
+
+/* ===== PERFORMANCE ===== */
+async function loadBranchPerformance() {
+  const tbody = document.getElementById("branchPerformanceTable");
+  tbody.innerHTML = "";
+  const dateKey = currentBusinessDate;
+  let totals = { bal:0,sold:0,cp:0,up:0,dmg:0,cv:0,uv:0,out:0 };
+  const branchSnap = await db.collection("users").where("role","==","branch").get();
+  for (const b of branchSnap.docs) {
+    const bId = b.id;
+    const ledger    = await db.collection("branch_stock_collection").doc(`${dateKey}__${bId}`).get();
+    const cashLedger= await db.collection("branch_daily_ledger").doc(dateKey).collection("branches").doc(bId).get();
+    if (!ledger.exists) { tbody.innerHTML += `<tr><td>${bId}</td><td colspan="10" style="color:#bbb;text-align:center;">No data</td></tr>`; continue; }
+    const L = ledger.data();
+    const outstanding = cashLedger.exists?(cashLedger.data().closing_cash||0):0;
+    let sold=0,cp=0,up=0,cv=0,uv=0;
+    const salesSnap = await db.collection("branch_sales").where("branchId","==",bId).where("businessDate","==",dateKey).get();
+    salesSnap.forEach(s => { const d=s.data(); sold+=d.quantity||0; if(d.paymentType==="cash"){cp+=d.quantity;cv+=d.amount;}else{up+=d.quantity;uv+=d.amount;} });
+    totals.bal+=L.closing_stock||0; totals.sold+=sold; totals.cp+=cp; totals.up+=up;
+    totals.dmg+=L.stock_damaged||0; totals.cv+=cv; totals.uv+=uv; totals.out+=outstanding;
+    const age = getStockAgeCategory(L.inward_date);
+    const ageBadge = L.inward_date ? `<span class="age-badge ${age.class}" style="font-size:10px;">${age.label}</span>` : "—";
+    tbody.innerHTML += `<tr><td>${bId}</td><td style="color:${(L.closing_stock||0)<5?'#c62828':'#2e7d32'}">${L.closing_stock||0}</td><td>${ageBadge}</td><td>${sold}</td><td>${cp}</td><td>${up}</td><td><span class="dmg-clickable" onclick="viewBranchDamageVideos('${bId}','${dateKey}')">${L.stock_damaged||0} pcs 📹</span></td><td>₹${cv}</td><td>₹${uv}</td><td><b>₹${cv+uv}</b></td><td style="color:${outstanding>0?'#c62828':'#2e7d32'};font-weight:bold;">₹${outstanding}</td></tr>`;
+  }
+  tbody.innerHTML += `<tr class="tfoot"><td>TOTAL</td><td>${totals.bal}</td><td>—</td><td>${totals.sold}</td><td>${totals.cp}</td><td>${totals.up}</td><td>${totals.dmg}</td><td>₹${totals.cv}</td><td>₹${totals.uv}</td><td>₹${totals.cv+totals.uv}</td><td style="color:#c62828;">₹${totals.out}</td></tr>`;
+}
+
+async function loadWarehousePerformance() {
+  const tbody = document.getElementById("warehousePerformanceTable");
+  tbody.innerHTML = "";
+  const dateKey = currentBusinessDate;
+  let totals = { bal:0,sold:0,cp:0,up:0,dmg:0,cv:0,uv:0 };
+  const whSnap = await db.collection("warehouses").get();
+  for (const doc of whSnap.docs) {
+    const wId = doc.id;
+    const ledger = await db.collection("warehouse_stock_collection").doc(`${dateKey}__${wId}`).get();
+    if (!ledger.exists) continue;
+    const L = ledger.data();
+    let sold=0,cp=0,up=0,cv=0,uv=0;
+    const salesSnap = await db.collection("warehouse_sales").where("warehouseId","==",wId).where("businessDate","==",dateKey).get();
+    salesSnap.forEach(s => { const d=s.data(); sold+=d.quantity; if(d.paymentType==="cash"){cp+=d.quantity;cv+=d.amount;}else{up+=d.quantity;uv+=d.amount;} });
+    totals.bal+=L.closing_stock; totals.sold+=sold; totals.cp+=cp; totals.up+=up;
+    totals.dmg+=L.stock_damaged||0; totals.cv+=cv; totals.uv+=uv;
+    const age = getStockAgeCategory(L.inward_date);
+    const ageBadge = L.inward_date ? `<span class="age-badge ${age.class}" style="font-size:10px;">${age.label}</span>` : "—";
+    tbody.innerHTML += `<tr><td>${doc.data().name}</td><td style="color:${L.closing_stock<0?'#c62828':'#2e7d32'}">${L.closing_stock}</td><td>${ageBadge}</td><td>${sold}</td><td>${cp}</td><td>${up}</td><td>${L.stock_damaged||0}</td><td>₹${cv}</td><td>₹${uv}</td><td><b>₹${cv+uv}</b></td></tr>`;
+  }
+  tbody.innerHTML += `<tr class="tfoot"><td>TOTAL</td><td>${totals.bal}</td><td>—</td><td>${totals.sold}</td><td>${totals.cp}</td><td>${totals.up}</td><td>${totals.dmg}</td><td>₹${totals.cv}</td><td>₹${totals.uv}</td><td>₹${totals.cv+totals.uv}</td></tr>`;
+}
+
+async function loadManagerPerformance() {
+  const div = document.getElementById("managerPerformanceDiv");
+  div.innerHTML = "Loading...";
+  const dateKey = currentBusinessDate;
+  const mgrSnap = await db.collection("users").where("role","==","manager").get();
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#e3f2fd;"><th style="padding:8px 10px;text-align:left;">Manager</th><th style="padding:8px 10px;">Pcs Sold</th><th style="padding:8px 10px;">Cash Sales ₹</th><th style="padding:8px 10px;">UPI Sales ₹</th><th style="padding:8px 10px;">From Branches</th><th style="padding:8px 10px;color:#c62828;">Pending</th></tr></thead><tbody>`;
+  for (const mgr of mgrSnap.docs) {
+    const mId = mgr.id; let totalPcs=0, cashAmt=0, upiAmt=0;
+    const wsSnap = await db.collection("warehouse_sales").where("managerId","==",mId).where("businessDate","==",dateKey).get();
+    wsSnap.forEach(d => { const sd=d.data(); totalPcs+=sd.quantity||0; if(sd.paymentType==="cash") cashAmt+=sd.amount||0; else upiAmt+=sd.amount||0; });
+    const mgrLedger = await db.collection("manager_daily_ledger").doc(dateKey).collection("managers").doc(mId).get();
+    const mData = mgrLedger.exists?mgrLedger.data():{};
+    html += `<tr style="border-bottom:1px solid #f0f0f0;${mId===managerId?'background:#e3f2fd;':''}"><td style="padding:8px 10px;font-weight:bold;">${mId}${mId===managerId?' 👈':''}</td><td style="padding:8px 10px;text-align:center;">${totalPcs}</td><td style="padding:8px 10px;text-align:right;">₹${cashAmt}</td><td style="padding:8px 10px;text-align:right;">₹${upiAmt}</td><td style="padding:8px 10px;text-align:right;">₹${mData.collected_from_branches||0}</td><td style="padding:8px 10px;text-align:right;color:${(mData.closing_cash||0)>0?'#c62828':'#2e7d32'};font-weight:bold;">₹${mData.closing_cash||0}</td></tr>`;
+  }
+  div.innerHTML = html + "</tbody></table>";
+}
+
+/* ===== BRANCH REPORT DASHBOARD ===== */
+async function loadBranchReportDashboard() {
+  const div = document.getElementById("branchReportDashboard");
+  div.innerHTML = `<div style="color:#999;font-size:13px;">Loading all branches...</div>`;
+  const dateKey = currentBusinessDate;
+  const brSnap = await db.collection("users").where("role","==","branch").get();
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f5f5f5;"><th style="padding:8px 10px;text-align:left;">Branch</th><th style="padding:8px 10px;">Stock</th><th style="padding:8px 10px;">Age</th><th style="padding:8px 10px;">Sold</th><th style="padding:8px 10px;">Damaged</th><th style="padding:8px 10px;">Cash Sales</th><th style="padding:8px 10px;">UPI Sales</th><th style="padding:8px 10px;">Total Rev</th><th style="padding:8px 10px;color:#c62828;">Outstanding</th></tr></thead><tbody>`;
+  let totCash=0,totUpi=0,totOut=0,totSold=0,totDmg=0;
+  for (const b of brSnap.docs) {
+    const bId = b.id;
+    const stockSnap = await db.collection("branch_stock_collection").doc(`${dateKey}__${bId}`).get();
+    const cashSnap  = await db.collection("branch_daily_ledger").doc(dateKey).collection("branches").doc(bId).get();
+    let upi = 0;
+    const upiSnap = await db.collection("branch_sales").where("branchId","==",bId).where("businessDate","==",dateKey).where("paymentType","==","upi").get();
+    upiSnap.forEach(d => { upi += d.data().amount||0; });
+    const S = stockSnap.exists?stockSnap.data():{};
+    const C = cashSnap.exists?cashSnap.data():{};
+    const cash = C.cash_sales||0; const outstanding = C.closing_cash||0;
+    const sold = S.stock_sold||0; const dmg = S.stock_damaged||0;
+    const age = getStockAgeCategory(S.inward_date);
+    const ageBadge = S.inward_date ? `<span class="age-badge ${age.class}" style="font-size:10px;">${age.label}</span>` : "—";
+    totCash+=cash; totUpi+=upi; totOut+=outstanding; totSold+=sold; totDmg+=dmg;
+    html += `<tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:8px 10px;font-weight:bold;">${bId}</td><td style="padding:8px 10px;text-align:center;color:${(S.closing_stock||0)<5?'#c62828':'#2e7d32'}">${S.closing_stock||0}</td><td style="padding:8px 10px;">${ageBadge}</td><td style="padding:8px 10px;text-align:center;">${sold}</td><td style="padding:8px 10px;text-align:center;"><span class="dmg-clickable" onclick="viewBranchDamageVideos('${bId}','${dateKey}')">${dmg} pcs 📹</span></td><td style="padding:8px 10px;text-align:right;">₹${cash}</td><td style="padding:8px 10px;text-align:right;">₹${upi}</td><td style="padding:8px 10px;text-align:right;font-weight:bold;">₹${cash+upi}</td><td style="padding:8px 10px;text-align:right;color:${outstanding>0?'#c62828':'#2e7d32'};font-weight:bold;">₹${outstanding}</td></tr>`;
+  }
+  html += `<tr style="background:#f0f4f0;font-weight:bold;"><td style="padding:8px 10px;">TOTAL</td><td></td><td>—</td><td style="text-align:center;">${totSold}</td><td style="text-align:center;">${totDmg}</td><td style="text-align:right;">₹${totCash}</td><td style="text-align:right;">₹${totUpi}</td><td style="text-align:right;">₹${totCash+totUpi}</td><td style="text-align:right;color:#c62828;">₹${totOut}</td></tr></tbody></table>`;
+  div.innerHTML = html;
+}
+
+/* ===== DAMAGE ANALYTICS ===== */
+async function loadDamageAnalytics() {
+  const div = document.getElementById("damageAnalyticsDiv");
+  div.innerHTML = `<div style="color:#999;font-size:13px;">Loading damage data...</div>`;
+  const dateKey = currentBusinessDate;
+
+  // Branch damages
+  const branchDmgSnap = await db.collection("branch_damaged").where("businessDate","==",dateKey).get();
+  const branchDmg = {};
+  let totalBranchDmg = 0;
+  branchDmgSnap.forEach(doc => {
+    const d = doc.data();
+    branchDmg[d.branchId] = (branchDmg[d.branchId]||0) + (d.quantity||0);
+    totalBranchDmg += d.quantity||0;
+  });
+
+  // Warehouse damages
+  const whDmgSnap = await db.collection("warehouse_damaged").where("businessDate","==",dateKey).get();
+  const whDmg = {};
+  let totalWhDmg = 0;
+  whDmgSnap.forEach(doc => {
+    const d = doc.data();
+    whDmg[d.warehouseId] = (whDmg[d.warehouseId]||0) + (d.quantity||0);
+    totalWhDmg += d.quantity||0;
+  });
+
+  // Total sold today (to compute damage %)
+  const brSnap = await db.collection("users").where("role","==","branch").get();
+  let totalSold = 0;
+  for (const b of brSnap.docs) {
+    const salesSnap = await db.collection("branch_sales").where("branchId","==",b.id).where("businessDate","==",dateKey).get();
+    salesSnap.forEach(doc => { totalSold += doc.data().quantity||0; });
+  }
+
+  const totalDmg = totalBranchDmg + totalWhDmg;
+  const dmgPercent = (totalSold + totalDmg) > 0 ? ((totalDmg / (totalSold + totalDmg)) * 100).toFixed(1) : "0.0";
+
+  // Sell price for value calc
+  let sellPrice = 70;
+  try { const sp = await db.collection("settings").doc("branch_config").get(); if (sp.exists && sp.data().sell_price) sellPrice = sp.data().sell_price; } catch(e){}
+
+  let html = `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="flex:1;min-width:140px;background:#ffebee;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:12px;color:#c62828;font-weight:600;margin-bottom:4px;">Total Damaged</div>
+        <div style="font-size:28px;font-weight:bold;color:#c62828;">${totalDmg}</div>
+        <div style="font-size:11px;color:#888;">pieces</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:#fff3e0;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:12px;color:#e65100;font-weight:600;margin-bottom:4px;">Damage %</div>
+        <div style="font-size:28px;font-weight:bold;color:#e65100;">${dmgPercent}%</div>
+        <div style="font-size:11px;color:#888;">of stock handled</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:#ffebee;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:12px;color:#c62828;font-weight:600;margin-bottom:4px;">Damage Value</div>
+        <div style="font-size:28px;font-weight:bold;color:#c62828;">₹${totalDmg * sellPrice}</div>
+        <div style="font-size:11px;color:#888;">lost revenue</div>
+      </div>
+    </div>
+    <div class="section-header red">📍 Damage by Branch</div>`;
+
+  if (Object.keys(branchDmg).length === 0) {
+    html += `<div style="color:#bbb;font-size:13px;padding:8px 0;">No branch damage today</div>`;
+  } else {
+    Object.entries(branchDmg).sort((a,b) => b[1]-a[1]).forEach(([branch, qty]) => {
+      const pct = totalBranchDmg > 0 ? ((qty/totalBranchDmg)*100).toFixed(0) : 0;
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px;"><span><b>${branch}</b></span><span style="color:#c62828;font-weight:700;">${qty} pcs (${pct}%) — ₹${qty*sellPrice}</span></div>`;
+    });
+  }
+
+  html += `<div class="section-header red" style="margin-top:12px;">🏭 Damage by Warehouse</div>`;
+  const whSnap = await db.collection("warehouses").get();
+  const whNames = {};
+  whSnap.forEach(doc => { whNames[doc.id] = doc.data().name||doc.id; });
+
+  if (Object.keys(whDmg).length === 0) {
+    html += `<div style="color:#bbb;font-size:13px;padding:8px 0;">No warehouse damage today</div>`;
+  } else {
+    Object.entries(whDmg).sort((a,b) => b[1]-a[1]).forEach(([wId, qty]) => {
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px;"><span><b>${whNames[wId]||wId}</b></span><span style="color:#c62828;font-weight:700;">${qty} pcs — ₹${qty*sellPrice}</span></div>`;
+    });
+  }
+
+  div.innerHTML = html;
+}
+
+/* ===== INVENTORY FORECAST ===== */
+async function loadInventoryForecast() {
+  const btn = document.getElementById("forecastBtn");
+  btn.disabled = true; btn.innerText = "Calculating...";
+  const div = document.getElementById("forecastDiv");
+  const recDiv = document.getElementById("purchaseRecommendation");
+  div.innerHTML = `<div style="color:#999;font-size:13px;">Analyzing 7 days of sales...</div>`;
+
+  try {
+    const todayKey = getTodayKey();
+    const days7 = [];
+    for (let i = 1; i <= 7; i++) {
+      days7.push(getBusinessDateOffset(new Date(todayKey + "T00:00:00"), -i));
+    }
+
+    // Get total sales per day
+    const dailySales = {};
+    for (const d of days7) {
+      let daySales = 0;
+      const snap = await db.collection("branch_sales").where("businessDate","==",d).get();
+      snap.forEach(doc => { daySales += doc.data().quantity||0; });
+      const wSnap = await db.collection("warehouse_sales").where("businessDate","==",d).get();
+      wSnap.forEach(doc => { daySales += doc.data().quantity||0; });
+      dailySales[d] = daySales;
+    }
+
+    const totalSales7 = Object.values(dailySales).reduce((a,b)=>a+b, 0);
+    const avgDailySales = Math.round(totalSales7 / 7);
+
+    // Current stock — branches + warehouses
+    let totalCurrentStock = 0;
+    const brSnap = await db.collection("users").where("role","==","branch").get();
+    for (const b of brSnap.docs) {
+      const s = await db.collection("branch_stock_collection").doc(`${todayKey}__${b.id}`).get();
+      totalCurrentStock += s.exists ? (s.data().closing_stock||0) : 0;
+    }
+    const whSnap = await db.collection("warehouses").get();
+    for (const w of whSnap.docs) {
+      const s = await db.collection("warehouse_stock_collection").doc(`${todayKey}__${w.id}`).get();
+      totalCurrentStock += s.exists ? (s.data().closing_stock||0) : 0;
+    }
+
+    const daysRemaining = avgDailySales > 0 ? Math.floor(totalCurrentStock / avgDailySales) : 999;
+    const demand7Days   = avgDailySales * 7;
+    const recommended   = Math.max(0, demand7Days - totalCurrentStock);
+
+    const urgencyClass = daysRemaining < 3 ? "danger" : (daysRemaining < 5 ? "warn" : "");
+    const urgencyIcon  = daysRemaining < 3 ? "🚨" : (daysRemaining < 5 ? "⚠️" : "✅");
+
+    let salesBreakdown = "";
+    Object.entries(dailySales).sort().reverse().forEach(([d, qty]) => {
+      salesBreakdown += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span>${d}</span><span style="font-weight:600;">${qty} pcs</span></div>`;
+    });
+
+    div.innerHTML = `
+      <div class="forecast-card ${urgencyClass}" style="margin-bottom:14px;">
+        <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">${urgencyIcon} Stock will last <span style="font-size:20px;color:${daysRemaining<3?'#c62828':daysRemaining<5?'#e65100':'#2e7d32'}">${daysRemaining} days</span></div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:14px;">
+          <div><div style="color:#888;font-size:12px;">Current Stock</div><b>${totalCurrentStock} pcs</b></div>
+          <div><div style="color:#888;font-size:12px;">Avg Daily Sales</div><b>${avgDailySales} pcs</b></div>
+          <div><div style="color:#888;font-size:12px;">7-Day Total</div><b>${totalSales7} pcs</b></div>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#555;">Daily Sales (Last 7 Days):</div>
+      ${salesBreakdown}
+    `;
+
+    recDiv.innerHTML = `
+      <div style="background:${recommended>0?'#fff3e0':'#e8f5e9'};border-radius:12px;padding:18px;border-left:4px solid ${recommended>0?'#e65100':'#2e7d32'};">
+        <div style="font-size:14px;color:#555;margin-bottom:8px;">📊 Purchase Recommendation (Next 7 Days)</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.1);">
+          <span>Expected demand (7 days)</span><span style="font-weight:600;">${demand7Days} pcs</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.1);">
+          <span>Current stock (all)</span><span style="font-weight:600;">${totalCurrentStock} pcs</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;padding:10px 0 0;font-weight:bold;">
+          <span>🛒 Recommended Purchase</span>
+          <span style="color:${recommended>0?'#e65100':'#2e7d32'};">${recommended > 0 ? recommended + " pcs" : "Not needed yet"}</span>
+        </div>
+        ${daysRemaining < 3 ? `<div style="margin-top:10px;background:rgba(198,40,40,0.1);border-radius:8px;padding:10px;font-size:13px;color:#c62828;font-weight:600;">🚨 URGENT: Stock critically low! Purchase immediately.</div>` : ""}
+      </div>
+    `;
+  } catch(err) {
+    console.error(err);
+    div.innerHTML = `<div style="color:#c62828;">Error loading forecast. Try again.</div>`;
+  } finally {
+    btn.disabled = false; btn.innerText = "Calculate Forecast";
+  }
+}
+
+/* ===== DAMAGE VIDEO VIEWER ===== */
+async function viewBranchDamageVideos(bId, dateKey) {
+  document.getElementById("dmgViewTitle").innerText = `📹 Damage Videos — ${bId} (${dateKey})`;
+  document.getElementById("dmgViewBody").innerHTML = `<div style="color:#999;font-size:13px;">Loading...</div>`;
+  document.getElementById("dmgViewModalBackdrop").classList.add("open");
+  const snap = await db.collection("branch_damaged").where("branchId","==",bId).where("businessDate","==",dateKey).get();
+  if (snap.empty) { document.getElementById("dmgViewBody").innerHTML = `<div style="color:#bbb;font-size:14px;text-align:center;padding:20px;">No damage entries for this date.</div>`; return; }
+  const rows = [];
+  snap.forEach(doc => rows.push({ id: doc.id, ...doc.data() }));
+  rows.sort((a,b) => b.date.toDate()-a.date.toDate());
+  let html = "";
+  rows.forEach(d => {
+    const time = d.date.toDate().toLocaleTimeString();
+    const gps  = d.gpsLat ? `📍 ${parseFloat(d.gpsLat).toFixed(5)}, ${parseFloat(d.gpsLng).toFixed(5)}` : "📍 No GPS";
+    const videoHtml = d.videoUrl ? `<video class="dmg-entry-video" controls src="${d.videoUrl}" preload="none"></video>` : `<div style="background:#f5f5f5;border-radius:8px;padding:20px;text-align:center;color:#bbb;font-size:13px;">No video attached</div>`;
+    html += `<div class="dmg-entry-card"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:700;color:#c62828;">⚠️ ${d.quantity} pcs damaged</span><span style="font-size:12px;color:#888;">${time}</span></div><div class="dmg-entry-gps">${gps}</div>${videoHtml}</div>`;
+  });
+  document.getElementById("dmgViewBody").innerHTML = html;
+}
+
+function viewSingleDamageVideo(videoUrl, qty, branchId) {
+  document.getElementById("dmgViewTitle").innerText = `📹 Damage — ${branchId} — ${qty} pcs`;
+  document.getElementById("dmgViewBody").innerHTML = `<div class="dmg-entry-card"><video class="dmg-entry-video" controls src="${videoUrl}" autoplay></video></div>`;
+  document.getElementById("dmgViewModalBackdrop").classList.add("open");
+}
+
+function closeDmgViewModal() {
+  document.getElementById("dmgViewModalBackdrop").classList.remove("open");
+  document.querySelectorAll("#dmgViewBody video").forEach(v => { v.pause(); v.src = ""; });
+}
+
+/* ===== MANAGER DAMAGE RECORDING ===== */
+let mgrMediaStream = null, mgrMediaRecorder = null, mgrRecordedBlob = null, mgrChunks = [];
+
+function openManagerDamageModal() {
+  const warehouse = document.getElementById("mgrDamageWarehouse").value;
+  const qty       = document.getElementById("mgrDamageQty").value;
+  if (!warehouse) { alert("Please select warehouse."); return; }
+  if (!qty || qty <= 0) { alert("Enter valid damaged quantity."); return; }
+  document.getElementById("mgrDamageModalBackdrop").classList.add("open");
+  initManagerCamera();
+  getManagerLocation();
+}
+
+function closeManagerDamageModal() {
+  document.getElementById("mgrDamageModalBackdrop").classList.remove("open");
+  if (mgrMediaStream) mgrMediaStream.getTracks().forEach(t => t.stop());
+  mgrRecordedBlob = null;
+  document.getElementById("mgrBtnSubmitDamage").disabled = true;
+}
+
+async function initManagerCamera() {
+  const video = document.getElementById("mgrLiveCamera");
+  try {
+    mgrMediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true });
+    video.srcObject = mgrMediaStream;
+    video.style.display = "block";
+    document.getElementById("mgrBtnStartRec").style.display = "inline-block";
+  } catch (err) { alert("Camera access denied."); console.error(err); }
+}
+
+function mgrStartRecording() {
+  mgrChunks = [];
+  const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp8,opus") ? "video/webm;codecs=vp8,opus" : "video/webm";
+  mgrMediaRecorder = new MediaRecorder(mgrMediaStream, { mimeType, videoBitsPerSecond: 1200000 });
+  mgrMediaRecorder.ondataavailable = e => mgrChunks.push(e.data);
+  mgrMediaRecorder.onstop = () => {
+    mgrRecordedBlob = new Blob(mgrChunks, { type: mimeType });
+    const preview = document.getElementById("mgrRecordedPreview");
+    preview.src = URL.createObjectURL(mgrRecordedBlob);
+    preview.style.display = "block";
+    document.getElementById("mgrLiveCamera").style.display = "none";
+    document.getElementById("mgrBtnSubmitDamage").disabled = false;
+    document.getElementById("mgrBtnRetake").style.display = "inline-block";
+    document.getElementById("mgrRecStatus").innerText = `✅ Recorded (${(mgrRecordedBlob.size/1024/1024).toFixed(1)} MB)`;
+  };
+  document.getElementById("mgrLiveCamera").style.display = "block";
+  document.getElementById("mgrRecordedPreview").style.display = "none";
+  mgrMediaRecorder.start();
+  document.getElementById("mgrBtnStartRec").style.display = "none";
+  document.getElementById("mgrBtnStopRec").style.display = "inline-block";
+  document.getElementById("mgrRecStatus").innerHTML = `<span class="rec-dot"></span>Recording at 720p...`;
+}
+
+function mgrStopRecording() { mgrMediaRecorder.stop(); document.getElementById("mgrBtnStopRec").style.display = "none"; if (mgrMediaStream) mgrMediaStream.getTracks().forEach(t => t.stop()); }
+function mgrRetakeVideo() { mgrRecordedBlob=null; document.getElementById("mgrRecordedPreview").style.display="none"; document.getElementById("mgrBtnSubmitDamage").disabled=true; document.getElementById("mgrBtnRetake").style.display="none"; document.getElementById("mgrBtnStartRec").style.display="inline-block"; initManagerCamera(); }
+
+function getManagerLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById("mgrGpsPill").innerText = `📍 ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+    document.getElementById("mgrGpsPill").style.display = "block";
+    document.getElementById("mgrGpsStatus").innerText = "Location captured";
+  }, () => { document.getElementById("mgrGpsStatus").innerText = "Location unavailable"; });
+}
+
+async function submitManagerDamage() {
+  if (!mgrRecordedBlob) { alert("Please record video first."); return; }
+  const warehouseId = document.getElementById("mgrDamageWarehouse").value;
+  const qty = parseInt(document.getElementById("mgrDamageQty").value);
+  const dateKey = getTodayKey();
+  document.getElementById("mgrBtnSubmitDamage").disabled = true;
+  document.getElementById("mgrUploadStatus").innerText = "Uploading video...";
+  try {
+    const videoUrl = await uploadManagerVideoToCloudinary(mgrRecordedBlob);
+    document.getElementById("mgrUploadStatus").innerText = "Video uploaded. Saving...";
+    await ensureWarehouseStockLedger(warehouseId, dateKey);
+    const stockRef = db.collection("warehouse_stock_collection").doc(`${dateKey}__${warehouseId}`);
+    const snap = await stockRef.get(); const s = snap.data();
+    if ((s.closing_stock||0) < qty) { alert("Insufficient stock."); return; }
+    await stockRef.update({ stock_damaged:(s.stock_damaged||0)+qty, closing_stock:s.opening_stock+(s.stock_received||0)-(s.stock_transferred||0)-(s.stock_sold||0)-((s.stock_damaged||0)+qty) });
+    await db.collection("warehouse_damaged").add({ warehouseId, quantity:qty, managerId, businessDate:dateKey, date:new Date(), videoUrl, gpsLat:null, gpsLng:null });
+    writeAuditLog("WAREHOUSE_DAMAGE_RECORDED", "warehouse_damaged", null, `${qty} pcs | ${warehouseId}`);
+    alert("✅ Damage recorded with video.");
+    closeManagerDamageModal(); refreshAll();
+  } catch(err) { console.error(err); alert("Error saving damage: "+err.message); }
+}
+
+async function uploadManagerVideoToCloudinary(videoBlob) {
+  const cloudName = "drh1vlssq"; const uploadPreset = "damage_videos";
+  const formData = new FormData();
+  formData.append("file", videoBlob); formData.append("upload_preset", uploadPreset);
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, { method: "POST", body: formData });
+  const data = await response.json();
+  if (!data.secure_url) throw new Error("Cloudinary upload failed");
+  return data.secure_url;
+}
+
+/* ===== WAREHOUSE BANNER ===== */
+let warehouseBannerExpanded = false;
+function toggleWarehouseBreakdown() {
+  warehouseBannerExpanded = !warehouseBannerExpanded;
+  const breakdown = document.getElementById("warehouseBannerBlocks");
+  const spacer    = document.getElementById("bannerCollapsedSpacer");
+  breakdown.style.display = warehouseBannerExpanded ? "flex" : "none";
+  spacer.style.display    = warehouseBannerExpanded ? "none" : "block";
+}
+
+async function loadWarehouseBannerBlocks() {
+  const container = document.getElementById("warehouseBannerBlocks");
+  container.innerHTML = "";
+  const dateKey = currentBusinessDate;
+  const whSnap = await db.collection("warehouses").get();
+  let grandTotal = 0;
+  for (const doc of whSnap.docs) {
+    const wId = doc.id; const wName = doc.data().name||wId;
+    const snap = await db.collection("warehouse_stock_collection").doc(`${dateKey}__${wId}`).get();
+    const stock = snap.exists ? (snap.data().closing_stock||0) : 0;
+    grandTotal += stock;
+    container.innerHTML += `<div style="background:linear-gradient(135deg,#0d47a1,#1976d2);color:white;border-radius:12px;padding:14px 18px;flex:1;min-width:130px;text-align:center;"><div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:0.5px;">🏭 ${wName}</div><div style="font-size:32px;font-weight:bold;line-height:1.2;color:${stock<10?'#ff7043':'#ffffff'}">${stock}</div><div style="font-size:11px;opacity:0.7;">pcs</div></div>`;
+  }
+  const totalEl = document.getElementById("totalStockBanner");
+  if (totalEl) { totalEl.innerText = grandTotal; totalEl.style.color = grandTotal<20?"#ff7043":"#ffffff"; }
+}
+
+async function loadWarehouseStockOverview() {
+  const div = document.getElementById("warehouseStockOverview");
+  div.innerHTML = "";
+  const dateKey = currentBusinessDate;
+  const whSnap = await db.collection("warehouses").get();
+  for (const doc of whSnap.docs) {
+    const wId = doc.id; const wName = doc.data().name||wId;
+    const snap = await db.collection("warehouse_stock_collection").doc(`${dateKey}__${wId}`).get();
+    if (!snap.exists) { div.innerHTML += `<div style="flex:1;min-width:200px;background:#f9f9f9;border-radius:10px;padding:14px;border:1px solid #eee;"><b>${wName}</b><br><span style="color:#bbb;font-size:13px;">No stock data today</span></div>`; continue; }
+    const s = snap.data();
+    const age = getStockAgeCategory(s.inward_date);
+    const ageBadge = s.inward_date ? `<div style="margin-top:6px;"><span class="age-badge ${age.class}">${age.label}</span></div>` : "";
+    div.innerHTML += `<div style="flex:1;min-width:200px;background:#e8f5e9;border-radius:10px;padding:14px;border:1px solid #c8e6c9;"><div style="font-weight:bold;color:#1b5e20;margin-bottom:8px;">🏭 ${wName}</div><div style="font-size:13px;color:#333;"><div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Opening</span><span>${s.opening_stock||0} pcs</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;color:#2e7d32;"><span>+ Received</span><span>${s.stock_received||0} pcs</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;color:#c62828;"><span>− Transferred</span><span>${s.stock_transferred||0} pcs</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;color:#c62828;"><span>− Bulk Sold</span><span>${s.stock_sold||0} pcs</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;font-weight:bold;border-top:1px solid #a5d6a7;margin-top:4px;padding-top:6px;"><span>Available Now</span><span style="color:#2e7d32;font-size:15px;">${s.closing_stock||0} pcs</span></div></div>${ageBadge}</div>`;
+  }
+}
+
+async function loadBulkWarehousePreview() {
+  const wId = document.getElementById("bulkWarehouse").value;
+  const div = document.getElementById("bulkWarehousePreview");
+  if (!wId) { div.style.display = "none"; return; }
+  const snap = await db.collection("warehouse_stock_collection").doc(`${currentBusinessDate}__${wId}`).get();
+  if (snap.exists) {
+    const d = snap.data(); const age = getStockAgeCategory(d.inward_date);
+    div.innerHTML = `Available stock: ${d.closing_stock||0} pcs${d.inward_date ? ` &nbsp; <span class="age-badge ${age.class}">${age.label}</span>` : ""}`;
+    div.style.display = "block";
+  } else { div.innerText = "No stock ledger for today."; div.style.display = "block"; }
+}
+
+/* ===== UPI MODAL ===== */
+let pendingBulkSale = null;
+function showUpiModal(qty, amount) {
+  document.getElementById("upiScreenWaiting").style.display = "block";
+  document.getElementById("upiScreenSuccess").style.display = "none";
+  document.getElementById("upiScreenCancelled").style.display = "none";
+  document.getElementById("upiAmountDisplay").innerText = `₹${amount}`;
+  const modal = document.getElementById("upiModal");
+  modal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+async function upiPaymentReceived() {
+  if (!pendingBulkSale) return;
+  const { warehouseId, qty, price, amount, todayKey, stockRef, s } = pendingBulkSale;
+  document.getElementById("upiScreenWaiting").style.display = "none";
+  document.getElementById("upiScreenSuccess").style.display = "block";
+  document.getElementById("upiSuccessAmount").innerText = `${qty} pcs × ₹${price} = ₹${amount} recorded as UPI`;
+  try { await recordBulkSale(warehouseId, qty, price, amount, "upi", todayKey, stockRef, s); } catch(err) { console.error(err); }
+  pendingBulkSale = null;
+}
+function upiPaymentCancelled() {
+  document.getElementById("upiScreenWaiting").style.display = "none";
+  document.getElementById("upiScreenCancelled").style.display = "block";
+  pendingBulkSale = null;
+}
+function closeUpiModal() {
+  document.getElementById("upiModal").style.display = "none";
+  document.body.style.overflow = "";
+  loadMyCash(); loadWarehouseBannerBlocks(); loadWarehouseStockOverview();
+}
+
+/* ===== REFRESH ALL ===== */
+async function refreshAll() {
+  loadMyCash();
+  loadWarehouseBannerBlocks();
+  loadWarehouseStockOverview();
+  loadTransfers();
+  loadBranchPerformance();
+  loadWarehousePerformance();
+  loadTodayExpenses();
+  loadPendingSettlements();
+}
+
+/* ===== SEED TODAY's LEDGERS ===== */
+async function seedTodayLedgers() {
+  const todayKey = getTodayKey();
+  await ensureManagerCashLedger(managerId, todayKey);
+  const whSnap = await db.collection("warehouses").get();
+  for (const w of whSnap.docs) { await ensureWarehouseStockLedger(w.id, todayKey); }
+}
+
+/* ===== PAGE LOAD ===== */
+window.onload = async () => {
+  loadLast7DaysDropdown();
+  await loadAllDropdowns();
+  await seedTodayLedgers();
+  refreshAll();
+};
+</script>
+</body>
+</html>
