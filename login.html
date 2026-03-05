@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>COCOLUSH Login</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #1b5e20, #388e3c);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 340px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .logo { font-size: 48px; margin-bottom: 8px; }
+    h1 { color: #1b5e20; font-size: 26px; margin-bottom: 4px; }
+    .tagline { color: #777; font-size: 13px; margin-bottom: 28px; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus { border-color: #388e3c; }
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #1b5e20; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .error { color: #c62828; font-size: 13px; margin-top: 10px; display: none; }
+    .version { color: #bbb; font-size: 11px; margin-top: 20px; }
+    @media (max-width: 400px) {
+      .login-card { width: 92%; padding: 32px 20px; }
+      input { font-size: 16px; }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 480px) {
+      body { align-items: flex-start; padding-top: 60px; }
+      .login-card { width: 92%; padding: 32px 22px; }
+      input { font-size: 16px; } /* prevent iOS zoom */
+      button { font-size: 16px; padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">🥥</div>
+    <h1>COCOLUSH</h1>
+    <p class="tagline">Business Management System</p>
+
+    <input id="username" placeholder="Username" autocomplete="off" />
+    <input id="password" type="password" placeholder="Password" />
+    <button onclick="login()" id="loginBtn">Login</button>
+    <div class="error" id="errorMsg"></div>
+    <div class="version">v3.0 — Enhanced Edition</div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBy8ImpP9kNEXMYGKI9CYpfYgkGWLUAtVc",
+      authDomain: "cocolush-e23df.firebaseapp.com",
+      projectId: "cocolush-e23df",
+      storageBucket: "cocolush-e23df.appspot.com",
+      messagingSenderId: "158824980719",
+      appId: "1:158824980719:web:d2e18f51aa6252cbd6fb1a"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    /* ===== SESSION EXPIRY CHECK ===== */
+    /* Only redirect if user, role AND a non-expired loginTime all exist in localStorage */
+    (function checkExistingSession() {
+      const user      = localStorage.getItem("loggedInUser");
+      const role      = localStorage.getItem("loggedInRole");
+      const loginTime = parseInt(localStorage.getItem("loginTime") || "0");
+      const SESSION_DURATION = 3 * 60 * 60 * 1000; // 3 hours
+      const elapsed   = Date.now() - loginTime;
+
+      // Only auto-redirect if all three values exist AND session hasn't expired
+      if (user && role && loginTime > 0 && elapsed < SESSION_DURATION) {
+        if (role === "master")   window.location.href = "master.html";
+        else if (role === "manager") window.location.href = "manager.html";
+        else if (role === "branch")  window.location.href = "branch.html";
+      } else {
+        // Clear any stale/expired data so login is fresh
+        localStorage.removeItem("loggedInUser");
+        localStorage.removeItem("loggedInRole");
+        localStorage.removeItem("loginTime");
+      }
+    })();
+
+    function showError(msg) {
+      const el = document.getElementById("errorMsg");
+      el.innerText = msg;
+      el.style.display = "block";
+    }
+
+    function getBrowserInfo() {
+      const ua = navigator.userAgent;
+      if (ua.includes("Firefox")) return "Firefox";
+      if (ua.includes("Edg")) return "Edge";
+      if (ua.includes("Chrome")) return "Chrome";
+      if (ua.includes("Safari")) return "Safari";
+      return "Unknown";
+    }
+
+    function getDeviceInfo() {
+      const ua = navigator.userAgent;
+      if (/Android/i.test(ua)) return "Android";
+      if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+      if (/Windows/i.test(ua)) return "Windows";
+      if (/Mac/i.test(ua)) return "Mac";
+      return "Unknown";
+    }
+
+    async function writeLoginAuditLog(username, role) {
+      try {
+        await db.collection("login_logs").add({
+          username,
+          role,
+          login_time: new Date().toISOString(),
+          device: getDeviceInfo(),
+          browser: getBrowserInfo(),
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch(e) {
+        console.warn("Could not write login audit log:", e);
+      }
+    }
+
+    async function login() {
+      const btn = document.getElementById("loginBtn");
+      btn.disabled = true;
+      btn.innerText = "Logging in...";
+      document.getElementById("errorMsg").style.display = "none";
+
+      const username = document.getElementById("username").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        showError("Please enter username and password.");
+        btn.disabled = false;
+        btn.innerText = "Login";
+        return;
+      }
+
+      try {
+        const doc = await db.collection("users").doc(username).get();
+
+        if (!doc.exists) {
+          showError("User not found. Check username.");
+          btn.disabled = false;
+          btn.innerText = "Login";
+          return;
+        }
+
+        const data = doc.data();
+
+        // Check if user is disabled
+        if (data.disabled === true) {
+          showError("Account disabled. Contact master admin.");
+          btn.disabled = false;
+          btn.innerText = "Login";
+          return;
+        }
+
+        if (data.password !== password) {
+          showError("Wrong password. Try again.");
+          btn.disabled = false;
+          btn.innerText = "Login";
+          return;
+        }
+
+        // Store session info
+        localStorage.setItem("loggedInUser", username);
+        localStorage.setItem("loggedInRole", data.role);
+        localStorage.setItem("loginTime", Date.now().toString());
+
+        // Write audit log (non-blocking)
+        writeLoginAuditLog(username, data.role);
+
+        // Redirect based on role
+        if (data.role === "master") window.location.href = "master.html";
+        else if (data.role === "manager") window.location.href = "manager.html";
+        else if (data.role === "branch") window.location.href = "branch.html";
+        else showError("Unknown role. Contact admin.");
+
+      } catch (err) {
+        console.error(err);
+        showError("Connection error. Check internet.");
+        btn.disabled = false;
+        btn.innerText = "Login";
+      }
+    }
+
+    // Allow Enter key to login
+    document.addEventListener("keypress", e => {
+      if (e.key === "Enter") login();
+    });
+  </script>
+</body>
+</html>
